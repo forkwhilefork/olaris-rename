@@ -75,15 +75,15 @@ func configPath(path string) string {
 }
 
 func defaultMovieFolder() string {
-	return filepath.Join(getHome(), "media", "Movies")
+	return filepath.Join(getHome(), "media-olaris", "Movies")
 }
 
 func defaultSeriesFolder() string {
-	return filepath.Join(getHome(), "media", "TV Shows")
+	return filepath.Join(getHome(), "media-olaris", "TV Shows")
 }
 
 func defaultMusicFolder() string {
-	return filepath.Join(getHome(), "media", "Music")
+	return filepath.Join(getHome(), "media-olaris", "Music")
 }
 func defaultConfigFolder() string {
 	p := filepath.Join(getHome(), ".config", "bis")

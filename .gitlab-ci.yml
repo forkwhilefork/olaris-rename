@@ -1,4 +1,4 @@
-image: golang:1.12-stretch
+image: golang:1.13.4-stretch
 
 variables:
   REPO_NAME: gitlab.com/olaris/olaris-rename

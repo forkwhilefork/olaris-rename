@@ -50,7 +50,7 @@ var supportedVideoExtensions = map[string]bool{
 	".mpeg": true,
 }
 
-var order = []string{"year", "season", "episode", "audio", "resolution", "quality", "codec", "group", "proper", "repack", "hardcoded", "extended", "internal", "groupAnime"}
+var order = []string{"year", "season", "episode", "episodeAnime", "groupAnime", "audio", "resolution", "quality", "codec", "group", "proper", "repack", "hardcoded", "extended", "internal"}
 
 var matchers = map[string]*regexp.Regexp{
 	"year":         regexp.MustCompile("([\\[\\(]?((?:19[0-9]|20[01])[0-9])[\\]\\)]?)"),

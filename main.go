@@ -25,6 +25,7 @@ type parsedFile struct {
 	Quality      string
 	Resolution   string
 	Group        string
+	AnimeGroup   string
 	IsSeries     bool
 	IsMovie      bool
 	IsMusic      bool
@@ -114,30 +115,6 @@ func newParsedFile(filePath string, lookup bool) parsedFile {
 	filename = filepath.Base(filename)
 	f.Filename = filename
 
-	cleanName := strings.Replace(f.Filename, ".", " ", -1)
-
-	if !f.IsMusic {
-		for _, match := range order {
-			res := matchers[match].FindStringSubmatch(cleanName)
-			if len(res) > 0 {
-				if match == "episode" {
-					cleanName = strings.Replace(cleanName, res[0], " ", -1)
-				} else if match == "season" {
-					cleanName = strings.Replace(cleanName, res[1], " ", -1)
-				} else {
-					cleanName = matchers[match].ReplaceAllString(cleanName, "")
-				}
-			}
-		}
-
-		cleanName = regexp.MustCompile("\\s{2,}.*").ReplaceAllString(cleanName, "")
-		cleanName = strings.Trim(cleanName, " ")
-		cleanName = strings.Trim(cleanName, " - ")
-		cleanName = strings.Title(cleanName)
-	}
-
-	f.CleanName = cleanName
-
 	if supportedVideoExtensions[f.Extension] {
 		for _, match := range order {
 			res := matchers[match].FindStringSubmatch(filename)
@@ -153,28 +130,52 @@ func newParsedFile(filePath string, lookup bool) parsedFile {
 					f.Quality = res[1]
 				case "resolution":
 					f.Resolution = res[2]
+				case "groupAnime":
+					f.AnimeGroup = res[1]
+				case "episodeAnime":
+					if f.Episode == "" {
+						f.Episode = strings.Trim(res[0], " ")
+						f.Season = "00"
+					}
 				}
 			}
 		}
 
+		cleanName := strings.Replace(f.Filename, ".", " ", -1)
+
+		if !f.IsMusic {
+			for _, match := range order {
+				res := matchers[match].FindStringSubmatch(cleanName)
+				if len(res) > 0 {
+					if match == "episode" {
+						cleanName = strings.Replace(cleanName, res[0], " ", -1)
+					} else if match == "season" {
+						cleanName = strings.Replace(cleanName, res[1], " ", -1)
+					} else if match == "groupAnime" {
+						cleanName = strings.Replace(cleanName, res[1], " ", -1)
+					} else {
+						cleanName = matchers[match].ReplaceAllString(cleanName, "")
+					}
+				}
+			}
+
+			cleanName = strings.Trim(cleanName, " ")
+
+			// Anime content is really weird, if we do this we might kill the name completely
+			if f.AnimeGroup == "" {
+				cleanName = regexp.MustCompile("\\s{2,}.*").ReplaceAllString(cleanName, "")
+				cleanName = strings.Trim(cleanName, " - ")
+				cleanName = strings.Title(cleanName)
+			}
+		}
+
+		f.CleanName = cleanName
 		if f.Episode == "" && f.Season == "" && f.Year != "" {
 			f.IsMovie = true
 		} else if f.Episode != "" && f.Season != "" {
 			f.IsSeries = true
-		} else if f.Episode != "" && f.Season == "" {
-			log.WithFields(log.Fields{"season": f.Season, "episode": f.Episode, "filename": f.Filename}).Warnln("Only episode number found, not sure this is actually a series")
-		} else if f.Episode == "" && f.Season == "" && f.Year == "" {
-			log.Warnln("Nothing sensible found, falling back on Anime matchers")
-			res := matchers["episodeAnime"].FindStringSubmatch(filename)
-			if len(res) > 0 {
-				f.Episode = strings.Trim(res[0], " ")
-				f.Season = "00"
-				f.IsSeries = true
-			}
-			res = matchers["groupAnime"].FindStringSubmatch(filename)
-			if len(res) > 0 {
-				f.CleanName = res[2]
-			}
+		} else if f.Episode == "" && f.Season == "" {
+			log.WithFields(log.Fields{"file": f.Filename}).Warnln("Nothing sensible found, don't know how to continue")
 		}
 
 	} else if supportedMusicExtensions[f.Extension] {
@@ -258,8 +259,8 @@ func checkFile(filePath string) {
 		log.Debugln("File is a SeriesFile")
 		err = file.Act(*seriesFolder, *action)
 	} else if file.IsMusic {
-		log.Debugln("File is a MovieFile")
-		err = file.Act(*musicFolder, *action)
+		log.Warnln("File is a MusicFile, music is not supported yet.")
+		//		err = file.Act(*musicFolder, *action)
 	}
 
 	if err != nil {
@@ -298,7 +299,8 @@ func main() {
 	}
 
 	if *filePath == "" {
-		log.Println("No --filepath given")
+		log.Errorln("--filepath is a required argument.")
+		flag.PrintDefaults()
 		return
 	}
 

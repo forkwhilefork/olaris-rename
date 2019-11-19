@@ -56,9 +56,9 @@ func TestParseContent(t *testing.T) {
 	tests["home/data/settings/content/The Matrix Revolutions - 2003.mkv"] = parsedFile{Filename: "The Matrix Revolutions - 2003", Extension: ".mkv", Filepath: "home/data/settings/content/The Matrix Revolutions - 2003.mkv", Year: "2003", IsMovie: true, CleanName: "The Matrix Revolutions"}
 	tests["Angel.S04E12.mkv"] = parsedFile{Filename: "Angel.S04E12", Extension: ".mkv", Filepath: "Angel.S04E12.mkv", Year: "", IsSeries: true, CleanName: "Angel", Season: "04", Episode: "12"}
 	tests["Downton Abbey 5x06 HDTV x264-FoV [eztv].mkv"] = parsedFile{Extension: ".mkv", IsSeries: true, Filename: "Downton Abbey 5x06 HDTV x264-FoV [eztv]", Season: "05", Episode: "06", CleanName: "Downton Abbey", Filepath: "Downton Abbey 5x06 HDTV x264-FoV [eztv].mkv"}
-	tests["Tipper - Baleen.mp3"] = parsedFile{Filename: "Tipper - Baleen", Extension: ".mp3", Filepath: "Tipper - Baleen.mp3", Year: "", IsMusic: true, CleanName: "Tipper"}
 	tests["Weekend.At.Bernie's.1989.1080p.BluRay.FLAC2.0.x264-DON.mkv"] = parsedFile{Filename: "Weekend.At.Bernie's.1989.1080p.BluRay.FLAC2.0.x264-DON", Extension: ".mkv", Filepath: "Weekend.At.Bernie's.1989.1080p.BluRay.FLAC2.0.x264-DON.mkv", Resolution: "1080p", Year: "1989", IsSeries: false, IsMovie: true, CleanName: "Weekend At Bernie'S"}
 	tests["[HorribleSubs] Kaiji S2 - Against All Rules - 01 [480p].mkv"] = parsedFile{Filename: "[HorribleSubs] Kaiji S2 - Against All Rules - 01 [480p]", Extension: ".mkv", Filepath: "[HorribleSubs] Kaiji S2 - Against All Rules - 01 [480p].mkv", Year: "", IsSeries: true, CleanName: "Kaiji S2 - Against All Rules", Season: "00", Episode: "01", Resolution: "480p"}
+	tests["[HorribleSubs] Fruits Basket (2019) - 01 [1080p].mkv"] = parsedFile{Filename: "[HorribleSubs] Fruits Basket (2019) - 01 [1080p]", Extension: ".mkv", Filepath: "[HorribleSubs] Fruits Basket (2019) - 01 [1080p].mkv", Year: "2019", IsSeries: true, CleanName: "Fruits Basket", Season: "00", Episode: "01", Resolution: "1080p"}
 
 	for name, mi := range tests {
 		//		t.Log("running test on:", name)

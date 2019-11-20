@@ -9,7 +9,7 @@ import (
 
 func TestExtract(t *testing.T) {
 	tmpdir, err := ioutil.TempDir(os.TempDir(), "or")
-	//	defer os.RemoveAll(tmpdir)
+	defer os.RemoveAll(tmpdir)
 	if err != nil {
 		t.Error(err)
 	}

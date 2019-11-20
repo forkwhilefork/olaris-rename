@@ -284,9 +284,7 @@ func (e *Env) checkFile(filePath string) {
 			if supportedVideoExtensions[extension] {
 				log.WithFields(log.Fields{"extension": ext, "filename": file.Name()}).Println("Extracting file and running new scan on the result")
 				archiver.Extract(filePath, file.Name(), e.extractPath)
-
-				filename := filepath.Base(filePath)
-				target := strings.Replace(filename, ext, "", -1)
+				target := strings.Replace(file.Name(), ext, "", -1)
 				rec := e.recursive
 				e.recursive = true
 				e.StartRun(filepath.Join(e.extractPath, target))

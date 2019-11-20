@@ -13,7 +13,7 @@ func TestExtract(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	e := NewEnv(true, "symlink", tmpdir, filepath.Join(tmpdir, "extracted"), tmpdir, false, true, false)
+	e := NewApp(true, "symlink", tmpdir, filepath.Join(tmpdir, "extracted"), tmpdir, false, true, false)
 	e.StartRun(filepath.Join("test-files", "The.Matrix-1999.mkv.zip"))
 	if err != nil {
 		t.Error(err)

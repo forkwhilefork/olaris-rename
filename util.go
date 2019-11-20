@@ -145,16 +145,3 @@ func copyFileContents(src, dst string) (err error) {
 	err = out.Sync()
 	return
 }
-
-func (e *Env) walkRecursive(dir string) error {
-	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if info.Mode().IsRegular() {
-			e.checkFile(path)
-		}
-		return nil
-	})
-}

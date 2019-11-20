@@ -354,7 +354,7 @@ func main() {
 	flag.Parse()
 
 	if *logToFile {
-		lp := configFolderPath("bis.log")
+		lp := configFolderPath("olaris-rename.log")
 		f, err := os.Create(lp)
 		if err != nil {
 			panic(err)

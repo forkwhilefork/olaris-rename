@@ -92,7 +92,7 @@ func defaultMusicFolder() string {
 	return filepath.Join(getHome(), "media", "Music")
 }
 func defaultConfigFolder() string {
-	p := filepath.Join(getHome(), ".config", "bis")
+	p := filepath.Join(getHome(), ".config", "olaris-renamer")
 	ensurePath(p)
 	return p
 }

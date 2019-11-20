@@ -77,19 +77,19 @@ func configPath(path string) string {
 }
 
 func defaultMovieFolder() string {
-	return filepath.Join(getHome(), "media-olaris", "Movies")
+	return filepath.Join(getHome(), "media", "Movies")
 }
 
 func defaultSeriesFolder() string {
-	return filepath.Join(getHome(), "media-olaris", "TV Shows")
+	return filepath.Join(getHome(), "media", "TV Shows")
 }
 
 func defaultExtractedFolder() string {
-	return filepath.Join(getHome(), "media-olaris", "extracted")
+	return filepath.Join(getHome(), "media", "extracted")
 }
 
 func defaultMusicFolder() string {
-	return filepath.Join(getHome(), "media-olaris", "Music")
+	return filepath.Join(getHome(), "media", "Music")
 }
 func defaultConfigFolder() string {
 	p := filepath.Join(getHome(), ".config", "bis")

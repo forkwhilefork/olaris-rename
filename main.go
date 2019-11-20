@@ -15,19 +15,20 @@ import (
 )
 
 // NewEnv creates a new environment
-func NewEnv(recursive bool, action string, movieFolder string, extractPath string, seriesFolder string, dryrun bool, tmdbLookup bool) *Env {
-	return &Env{recursive: recursive, action: action, movieFolder: movieFolder, extractPath: extractPath, seriesFolder: seriesFolder, dryrun: dryrun, tmdbLookup: tmdbLookup}
+func NewEnv(recursive bool, action string, movieFolder string, extractPath string, seriesFolder string, dryrun bool, tmdbLookup bool, skipExtracting bool) *Env {
+	return &Env{recursive: recursive, action: action, movieFolder: movieFolder, extractPath: extractPath, seriesFolder: seriesFolder, dryrun: dryrun, tmdbLookup: tmdbLookup, skipExtracting: skipExtracting}
 }
 
 // Env is a Standard environment with options
 type Env struct {
-	action       string
-	movieFolder  string
-	extractPath  string
-	seriesFolder string
-	dryrun       bool
-	recursive    bool
-	tmdbLookup   bool
+	action         string
+	movieFolder    string
+	extractPath    string
+	seriesFolder   string
+	dryrun         bool
+	recursive      bool
+	tmdbLookup     bool
+	skipExtracting bool
 }
 
 type parsedFile struct {
@@ -206,6 +207,9 @@ func newParsedFile(filePath string, lookup bool) parsedFile {
 
 	} else if supportedMusicExtensions[f.Extension] {
 		f.IsMusic = true
+		return f
+	} else {
+		return f
 	}
 
 	if lookup {
@@ -277,7 +281,7 @@ func (e *Env) checkFile(filePath string) {
 	}
 
 	ext := filepath.Ext(filePath)
-	if supportedCompressedExtensions[ext] {
+	if supportedCompressedExtensions[ext] && !e.skipExtracting {
 		log.WithFields(log.Fields{"extension": ext, "file": filePath}).Println("Got a compressed file")
 
 		err := archiver.Walk(filePath, func(file archiver.File) error {
@@ -382,6 +386,6 @@ func main() {
 		log.Warnln("--dry-run is enabled, not touching files")
 	}
 
-	e := NewEnv(*recursive, *action, *movieFolder, *extractPath, *seriesFolder, *dryrun, *tmdbLookup)
+	e := NewEnv(*recursive, *action, *movieFolder, *extractPath, *seriesFolder, *dryrun, *tmdbLookup, *skipExtracting)
 	e.StartRun(*filePath)
 }

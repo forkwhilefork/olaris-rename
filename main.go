@@ -72,7 +72,7 @@ func queryTmdb(p *parsedFile) error {
 	if p.IsSeries {
 		searchRes, err := agent.SearchTv(p.CleanName, options)
 		if err != nil {
-			log.Warnln("Could not find a hit on TMDB")
+			log.WithFields(log.Fields{"name": p.CleanName, "error": err}).Warnln("Got an error from TMDB")
 			return err
 		}
 
@@ -87,6 +87,7 @@ func queryTmdb(p *parsedFile) error {
 	} else if p.IsMovie {
 		searchRes, err := agent.SearchMovie(p.CleanName, options)
 		if err != nil {
+			log.WithFields(log.Fields{"name": p.CleanName, "error": err}).Warnln("Got an error from TMDB")
 			return err
 		}
 
@@ -283,7 +284,7 @@ func (e *Env) checkFile(filePath string) {
 			extension := filepath.Ext(file.Name())
 			if supportedVideoExtensions[extension] {
 				log.WithFields(log.Fields{"extension": ext, "filename": file.Name()}).Println("Extracting file and running new scan on the result")
-				archiver.Extract(filePath, file.Name(), e.extractPath)
+				archiver.Unarchive(filePath, e.extractPath)
 				target := strings.Replace(file.Name(), ext, "", -1)
 				rec := e.recursive
 				e.recursive = true
@@ -292,8 +293,9 @@ func (e *Env) checkFile(filePath string) {
 			}
 			return nil
 		})
+
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Warnln("Received an error while looking at compressed data")
+			log.WithFields(log.Fields{"error": err}).Warnln("Received an error while looking through compressed data.")
 		}
 	}
 

@@ -14,5 +14,4 @@ var movieFolder = flag.String("movie-folder", defaultMovieFolder(), "Folder wher
 var seriesFolder = flag.String("series-folder", defaultSeriesFolder(), "Folder where series should be placed")
 var musicFolder = flag.String("music-folder", defaultMusicFolder(), "Folder where music should be placed")
 var tmdbLookup = flag.Bool("tmdb-lookup", false, "Should the TMDB be used for better look-up and matching")
-
-var extractPath = flag.String("extract-path", defaultExtractedFolder(), "Path to extract content to")
+var extractPath = flag.String("extract-path", defaultExtractedFolder(), "Path to extract content to.")

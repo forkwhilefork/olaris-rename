@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/mholt/archiver/v3"
 	"github.com/ryanbradynd05/go-tmdb"
 
 	log "github.com/sirupsen/logrus"
@@ -12,6 +13,22 @@ import (
 	"regexp"
 	"strings"
 )
+
+// NewEnv creates a new environment
+func NewEnv(recursive bool, action string, movieFolder string, extractPath string, seriesFolder string, dryrun bool, tmdbLookup bool) *Env {
+	return &Env{recursive: recursive, action: action, movieFolder: movieFolder, extractPath: extractPath, seriesFolder: seriesFolder, dryrun: dryrun, tmdbLookup: tmdbLookup}
+}
+
+// Env is a Standard environment with options
+type Env struct {
+	action       string
+	movieFolder  string
+	extractPath  string
+	seriesFolder string
+	dryrun       bool
+	recursive    bool
+	tmdbLookup   bool
+}
 
 type parsedFile struct {
 	Year         string
@@ -32,9 +49,17 @@ type parsedFile struct {
 	ExternalID   int
 }
 
-var agent *tmdb.TMDb
-
 func queryTmdb(p *parsedFile) error {
+	var agent *tmdb.TMDb
+
+	config := tmdb.Config{
+		APIKey:   tmdbAPIKey,
+		Proxies:  nil,
+		UseProxy: false,
+	}
+
+	agent = tmdb.Init(config)
+
 	var options = make(map[string]string)
 
 	if p.Year != "" {
@@ -236,7 +261,7 @@ func (p parsedFile) Act(targetFolder, action string) error {
 	return nil
 }
 
-func checkFile(filePath string) {
+func (e *Env) checkFile(filePath string) {
 	var err error
 
 	log.WithFields(log.Fields{"filePath": filePath}).Debugln("Checking file")
@@ -250,36 +275,79 @@ func checkFile(filePath string) {
 		return
 	}
 
-	file := newParsedFile(filePath, *tmdbLookup)
+	ext := filepath.Ext(filePath)
+	if supportedCompressedExtensions[ext] {
+		log.WithFields(log.Fields{"extension": ext, "file": filePath}).Println("Got a compressed file")
+
+		err := archiver.Walk(filePath, func(file archiver.File) error {
+			extension := filepath.Ext(file.Name())
+			if supportedVideoExtensions[extension] {
+				log.WithFields(log.Fields{"extension": ext, "filename": file.Name()}).Println("Extracting file and running new scan on the result")
+				archiver.Extract(filePath, file.Name(), e.extractPath)
+
+				filename := filepath.Base(filePath)
+				target := strings.Replace(filename, ext, "", -1)
+				rec := e.recursive
+				e.recursive = true
+				e.StartRun(filepath.Join(e.extractPath, target))
+				e.recursive = rec
+			}
+			return nil
+		})
+		if err != nil {
+			log.WithFields(log.Fields{"error": err}).Warnln("Received an error while looking at compressed data")
+		}
+	}
+
+	file := newParsedFile(filePath, e.tmdbLookup)
 
 	if file.IsMovie {
 		log.Debugln("File is a MovieFile")
-		err = file.Act(*movieFolder, *action)
+		err = file.Act(e.movieFolder, e.action)
 	} else if file.IsSeries {
 		log.Debugln("File is a SeriesFile")
-		err = file.Act(*seriesFolder, *action)
+		err = file.Act(e.seriesFolder, e.action)
 	} else if file.IsMusic {
-		log.Warnln("File is a MusicFile, music is not supported yet.")
-		//		err = file.Act(*musicFolder, *action)
+		log.Debugln("File is a MusicFile, music is not supported yet.")
 	}
 
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Errorln("Received error while acting on parsed file")
 	}
+
 	log.WithFields(log.Fields{"filePath": filePath}).Debugln("Done checking file")
 
 	return
 }
-func main() {
-	flag.Parse()
 
-	config := tmdb.Config{
-		APIKey:   tmdbAPIKey,
-		Proxies:  nil,
-		UseProxy: false,
+// StartRun starts a identification run
+func (e *Env) StartRun(path string) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		panic(err)
 	}
 
-	agent = tmdb.Init(config)
+	if fi.IsDir() {
+		if e.recursive == false {
+			log.Infof("Scanning non-recursive path '%s'", path)
+			files, err := filepath.Glob(filepath.Join(path, "*"))
+			if err != nil {
+				log.WithFields(log.Fields{"error": err}).Errorln("Received error while discovering files in folder")
+			}
+			for _, f := range files {
+				e.checkFile(f)
+			}
+		} else if e.recursive {
+			log.Infof("Scanning path '%s' recursively", path)
+			e.walkRecursive(path + "/")
+		}
+	} else {
+		e.checkFile(path)
+	}
+}
+
+func main() {
+	flag.Parse()
 
 	if *logToFile {
 		lp := configFolderPath("bis.log")
@@ -305,7 +373,8 @@ func main() {
 	}
 
 	if !actions[*action] {
-		log.Warnf("Unknown action '%s'\n", *action)
+		log.Errorf("Unknown --action '%s'", *action)
+		flag.PrintDefaults()
 		return
 	}
 
@@ -313,29 +382,6 @@ func main() {
 		log.Warnln("--dry-run is enabled, not touching files")
 	}
 
-	fi, err := os.Stat(*filePath)
-	if err != nil {
-		panic(err)
-	}
-
-	if fi.IsDir() {
-		if *recursive == false {
-			log.Infof("Scanning non-recursive path '%s'", *filePath)
-			files, err := filepath.Glob(filepath.Join(*filePath, "*"))
-			if err != nil {
-				log.WithFields(log.Fields{"error": err}).Errorln("Received error while discovering files in folder")
-			}
-			for _, f := range files {
-				checkFile(f)
-			}
-		} else if *recursive {
-			log.Infof("Scanning path '%s' recursively", *filePath)
-			walkRecursive(*filePath + "/")
-		}
-
-	} else {
-		checkFile(*filePath)
-	}
-
-	log.Infoln("Run completed.")
+	e := NewEnv(*recursive, *action, *movieFolder, *extractPath, *seriesFolder, *dryrun, *tmdbLookup)
+	e.StartRun(*filePath)
 }

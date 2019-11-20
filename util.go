@@ -23,7 +23,9 @@ var actions = map[string]bool{
 var supportedCompressedExtensions = map[string]bool{
 	".rar": true,
 	".zip": true,
-	".7z":  true,
+	".tar": true,
+	".bz2": true,
+	".gz":  true,
 }
 
 var supportedMusicExtensions = map[string]bool{
@@ -80,6 +82,10 @@ func defaultMovieFolder() string {
 
 func defaultSeriesFolder() string {
 	return filepath.Join(getHome(), "media-olaris", "TV Shows")
+}
+
+func defaultExtractedFolder() string {
+	return filepath.Join(getHome(), "media-olaris", "extracted")
 }
 
 func defaultMusicFolder() string {
@@ -140,14 +146,14 @@ func copyFileContents(src, dst string) (err error) {
 	return
 }
 
-func walkRecursive(dir string) error {
+func (e *Env) walkRecursive(dir string) error {
 	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
 		if info.Mode().IsRegular() {
-			checkFile(path)
+			e.checkFile(path)
 		}
 		return nil
 	})

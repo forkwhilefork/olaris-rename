@@ -7,6 +7,26 @@ import (
 	"testing"
 )
 
+func TestExtract(t *testing.T) {
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "or")
+	//	defer os.RemoveAll(tmpdir)
+	if err != nil {
+		t.Error(err)
+	}
+	e := NewEnv(true, "symlink", tmpdir, filepath.Join(tmpdir, "extracted"), tmpdir, false, true)
+	e.StartRun(filepath.Join("test-files", "The.Matrix-1999.mkv.zip"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	target := filepath.Join(tmpdir, "extracted", "The.Matrix-1999.mkv")
+	if _, err := os.Lstat(target); err == nil {
+		t.Log("Exists")
+	} else if os.IsNotExist(err) {
+		t.Error(err)
+	}
+}
+
 func TestSymlink(t *testing.T) {
 	tmpdir, err := ioutil.TempDir(os.TempDir(), "bis")
 	defer os.RemoveAll(tmpdir)
@@ -26,7 +46,6 @@ func TestSymlink(t *testing.T) {
 	} else if os.IsNotExist(err) {
 		t.Error(err)
 	}
-
 }
 
 func TestCopy(t *testing.T) {

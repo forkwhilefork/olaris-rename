@@ -30,7 +30,7 @@ format:
 build:
     stage: build
     script:
-      - go build -o olaris-rename flags.go main.go util.go
+      - go build -o olaris-rename flags.go main.go util.go app.go file.go
       - cp -r olaris-rename $CI_PROJECT_DIR/
 
     artifacts:

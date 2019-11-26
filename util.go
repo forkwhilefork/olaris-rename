@@ -53,6 +53,12 @@ var supportedVideoExtensions = map[string]bool{
 }
 
 var order = []string{"year", "season", "episode", "episodeAnime", "groupAnime", "audio", "resolution", "quality", "codec", "group", "proper", "repack", "hardcoded", "extended", "internal"}
+var ignoreMovie = map[string]bool{
+	"season":       true,
+	"episode":      true,
+	"episodeAnime": true,
+	"groupAnime":   true,
+}
 
 var matchers = map[string]*regexp.Regexp{
 	"year":         regexp.MustCompile("([\\[\\(]?((?:19[0-9]|20[01])[0-9])[\\]\\)]?)"),
@@ -68,7 +74,7 @@ var matchers = map[string]*regexp.Regexp{
 	"hardcoded":    regexp.MustCompile("HC"),
 	"internal":     regexp.MustCompile("(?i)INTERNAL"),
 	"extended":     regexp.MustCompile("(EXTENDED(:?.CUT)?)"),
-	"episodeAnime": regexp.MustCompile("[-_ p.](\\d{2})[-_ (v.\\[](\\d{2})?"),
+	"episodeAnime": regexp.MustCompile("[-_ p.](\\d{2})[-_ (v\\[](\\d{2})?"),
 	"groupAnime":   regexp.MustCompile("^(\\[\\w*\\])\\s(.*)\\s-"),
 }
 

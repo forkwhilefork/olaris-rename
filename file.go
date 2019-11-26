@@ -151,17 +151,28 @@ func newParsedFile(filePath string, lookup bool) parsedFile {
 		cleanName := strings.Replace(f.Filename, ".", " ", -1)
 
 		if !f.IsMusic {
+			if f.Episode == "" && f.Season == "" && f.Year != "" {
+				f.IsMovie = true
+			} else if f.Episode != "" && f.Season != "" {
+				f.IsSeries = true
+			} else if f.Episode == "" && f.Season == "" {
+				log.WithFields(log.Fields{"file": f.Filename}).Warnln("Nothing sensible found, don't know how to continue")
+			}
+
 			for _, match := range order {
 				res := matchers[match].FindStringSubmatch(cleanName)
 				if len(res) > 0 {
-					if match == "episode" {
-						cleanName = strings.Replace(cleanName, res[0], " ", -1)
-					} else if match == "season" {
-						cleanName = strings.Replace(cleanName, res[1], " ", -1)
-					} else if match == "groupAnime" {
-						cleanName = strings.Replace(cleanName, res[1], " ", -1)
-					} else {
-						cleanName = matchers[match].ReplaceAllString(cleanName, "")
+					// We don't need to remove Episode and Season information from movies, so let's exclude some properties
+					if (f.IsMovie && !ignoreMovie[match]) || f.IsSeries {
+						if match == "episode" {
+							cleanName = strings.Replace(cleanName, res[0], " ", -1)
+						} else if match == "season" {
+							cleanName = strings.Replace(cleanName, res[1], " ", -1)
+						} else if match == "groupAnime" {
+							cleanName = strings.Replace(cleanName, res[1], " ", -1)
+						} else {
+							cleanName = matchers[match].ReplaceAllString(cleanName, "")
+						}
 					}
 				}
 			}
@@ -177,13 +188,6 @@ func newParsedFile(filePath string, lookup bool) parsedFile {
 		}
 
 		f.CleanName = cleanName
-		if f.Episode == "" && f.Season == "" && f.Year != "" {
-			f.IsMovie = true
-		} else if f.Episode != "" && f.Season != "" {
-			f.IsSeries = true
-		} else if f.Episode == "" && f.Season == "" {
-			log.WithFields(log.Fields{"file": f.Filename}).Warnln("Nothing sensible found, don't know how to continue")
-		}
 
 	} else if supportedMusicExtensions[f.Extension] {
 		f.IsMusic = true

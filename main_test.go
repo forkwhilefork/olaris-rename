@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,7 +14,7 @@ func TestExtract(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	e := NewApp(true, "symlink", tmpdir, filepath.Join(tmpdir, "extracted"), tmpdir, false, true, false)
+	e := NewApp(true, "symlink", tmpdir, filepath.Join(tmpdir, "extracted"), tmpdir, false, true, false, "0")
 	e.StartRun(filepath.Join("test-files", "The.Matrix-1999.mkv.zip"))
 	if err != nil {
 		t.Error(err)
@@ -24,6 +25,22 @@ func TestExtract(t *testing.T) {
 		t.Log("Exists")
 	} else if os.IsNotExist(err) {
 		t.Error(err)
+	}
+}
+
+func TestSmallFile(t *testing.T) {
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "bis")
+	//	defer os.RemoveAll(tmpdir)
+
+	fmt.Println(tmpdir)
+	e := NewApp(true, "symlink", tmpdir, filepath.Join(tmpdir, "extracted"), tmpdir, false, true, false, "120")
+	e.StartRun(filepath.Join("test-files", "The.Matrix-1999.mkv"))
+	if err != nil {
+		t.Error(err)
+	}
+	target := filepath.Join(tmpdir, "The Matrix", "The Matrix (1999).mkv")
+	if _, err := os.Lstat(target); err == nil {
+		t.Error("An error should have been thrown since the minFileSize was not met, it renamed it anyway!")
 	}
 }
 

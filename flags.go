@@ -16,3 +16,4 @@ var musicFolder = flag.String("music-folder", defaultMusicFolder(), "Folder wher
 var tmdbLookup = flag.Bool("tmdb-lookup", true, "Should the TMDB be used for better look-up and matching.")
 var extractPath = flag.String("extract-path", defaultExtractedFolder(), "Path to extract content to.")
 var skipExtracting = flag.Bool("skip-extracting", false, "Disable automatic extraction.")
+var minFileSize = flag.String("min-file-size", "120", "Minimal file size in MB for olaris-rename to consider a file valid to be processed.")

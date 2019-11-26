@@ -25,6 +25,8 @@ be much slower.
     	Logs are written to stdout as well as a logfile.
   -movie-folder string
     	Folder where movies should be placed (default "$HOME/media-olaris/Movies")
+  -min-file-size string
+      Minimal file size in MB for olaris-rename to consider a file valid to be processed. (default "120")
   -music-folder string
     	Folder where music should be placed (default "$HOME/media-olaris/Music")
   -recursive

@@ -2,16 +2,16 @@ package main
 
 import (
 	"github.com/mholt/archiver/v3"
-
 	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
 // NewApp creates a new environment
-func NewApp(recursive bool, action string, movieFolder string, extractPath string, seriesFolder string, dryrun bool, tmdbLookup bool, skipExtracting bool) *App {
-	return &App{recursive: recursive, action: action, movieFolder: movieFolder, extractPath: extractPath, seriesFolder: seriesFolder, dryrun: dryrun, tmdbLookup: tmdbLookup, skipExtracting: skipExtracting}
+func NewApp(recursive bool, action string, movieFolder string, extractPath string, seriesFolder string, dryrun bool, tmdbLookup bool, skipExtracting bool, minFileSize string) *App {
+	return &App{recursive: recursive, action: action, movieFolder: movieFolder, extractPath: extractPath, seriesFolder: seriesFolder, dryrun: dryrun, tmdbLookup: tmdbLookup, skipExtracting: skipExtracting, minFileSize: minFileSize}
 }
 
 // App is a Standard environment with options
@@ -20,10 +20,20 @@ type App struct {
 	movieFolder    string
 	extractPath    string
 	seriesFolder   string
+	minFileSize    string
 	dryrun         bool
 	recursive      bool
 	tmdbLookup     bool
 	skipExtracting bool
+}
+
+func (e *App) minFileSizeBytes() int64 {
+	mb, err := strconv.Atoi(e.minFileSize)
+	if err != nil {
+		log.Warnln("could not parse given minFileSize, returning default one")
+		return 2 * 1000 * 1000
+	}
+	return int64(mb) * 1000 * 1000
 }
 
 func (e *App) walkRecursive(dir string) error {
@@ -41,11 +51,13 @@ func (e *App) walkRecursive(dir string) error {
 
 func (e *App) checkFile(filePath string) {
 	var err error
+	log.WithFields(log.Fields{"filePath": filePath}).Debugln("checking file")
 
-	log.WithFields(log.Fields{"filePath": filePath}).Debugln("Checking file")
+	ext := filepath.Ext(filePath)
+
 	info, err := os.Stat(filePath)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Errorln("Received error while statting file.")
+		log.WithFields(log.Fields{"error": err, "filePath": filePath}).Errorln("received error while statting file.")
 		return
 	}
 	if !info.Mode().IsRegular() {
@@ -53,7 +65,13 @@ func (e *App) checkFile(filePath string) {
 		return
 	}
 
-	ext := filepath.Ext(filePath)
+	if supportedVideoExtensions[ext] {
+		if info.Size() < e.minFileSizeBytes() {
+			log.WithFields(log.Fields{"filePath": filePath, "minSize": e.minFileSizeBytes(), "size": info.Size()}).Warnln("file is smaller then the given limit, not processing.")
+			return
+		}
+	}
+
 	if supportedCompressedExtensions[ext] && !e.skipExtracting {
 		log.WithFields(log.Fields{"extension": ext, "file": filePath}).Println("Got a compressed file")
 
@@ -101,7 +119,8 @@ func (e *App) checkFile(filePath string) {
 func (e *App) StartRun(path string) {
 	fi, err := os.Stat(path)
 	if err != nil {
-		panic(err)
+		log.WithFields(log.Fields{"path": path, "error": err}).Errorf("could not open file")
+		return
 	}
 
 	if fi.IsDir() {

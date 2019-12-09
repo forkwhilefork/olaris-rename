@@ -25,6 +25,8 @@ be much slower.
     	Logs are written to stdout as well as a logfile.
   -movie-folder string
     	Folder where movies should be placed (default "$HOME/media-olaris/Movies")
+  -movie-format string
+      Format used to rename movies. (default "{n}/{n} ({y}) {r}")
   -min-file-size string
       Minimal file size in MB for olaris-rename to consider a file valid to be processed. (default "120")
   -music-folder string
@@ -33,6 +35,8 @@ be much slower.
     	Scan folders inside of other folders.
   -series-folder string
     	Folder where series should be placed (default "$HOME/media-olaris/TV Shows")
+  -series-format string
+      Format used to rename series. (default "{n}/Season.{s}/{n}.S{s}E{e}.{r}")
   -tmdb-lookup
     	Should the TMDB be used for better look-up and matching
   -verbose

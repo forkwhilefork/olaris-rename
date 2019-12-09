@@ -88,9 +88,9 @@ func (p *parsedFile) TargetName() string {
 	var newName string
 
 	if p.IsMovie {
-		newName = defaultMovieFormat
+		newName = *movieFormat
 	} else if p.IsSeries {
-		newName = defaultSeriesFormat
+		newName = *seriesFormat
 		newName = strings.Replace(newName, "{s}", p.Season, -1)
 		newName = strings.Replace(newName, "{e}", p.Episode, -1)
 	} else {

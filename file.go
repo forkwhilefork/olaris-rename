@@ -60,7 +60,11 @@ func queryTmdb(p *parsedFile) error {
 		if len(searchRes.Results) > 0 {
 			tv := searchRes.Results[0] // Take the first result for now
 			p.ExternalID = tv.ID
-			p.ExternalName = tv.OriginalName
+			p.ExternalName = tv.Name
+			p.CleanName = tv.Name
+			if tv.FirstAirDate != "" && p.Year == "" {
+				p.Year = strings.Split(tv.FirstAirDate, "-")[0]
+			}
 		} else {
 			log.Debugln("No results")
 		}
@@ -76,6 +80,7 @@ func queryTmdb(p *parsedFile) error {
 			mov := searchRes.Results[0] // Take the first result for now
 			p.ExternalID = mov.ID
 			p.ExternalName = mov.Title
+			p.CleanName = mov.Title
 		} else {
 			log.Debugln("No results")
 		}
@@ -97,11 +102,8 @@ func (p *parsedFile) TargetName() string {
 		newName = p.Filename
 	}
 
-	if p.ExternalName != "" {
-		newName = strings.Replace(newName, "{n}", p.ExternalName, -1)
-	} else {
-		newName = strings.Replace(newName, "{n}", p.CleanName, -1)
-	}
+	newName = strings.Replace(newName, "{n}", p.CleanName, -1)
+
 	newName = strings.Replace(newName, "{r}", p.Resolution, -1)
 	newName = strings.Replace(newName, "{q}", p.Quality, -1)
 	newName = strings.Replace(newName, "{y}", p.Year, -1)
@@ -188,7 +190,6 @@ func newParsedFile(filePath string, lookup bool) parsedFile {
 		}
 
 		f.CleanName = cleanName
-
 	} else if supportedMusicExtensions[f.Extension] {
 		f.IsMusic = true
 		return f
@@ -198,6 +199,11 @@ func newParsedFile(filePath string, lookup bool) parsedFile {
 
 	if lookup {
 		queryTmdb(&f)
+	}
+
+	if addYearToSeries[f.CleanName] && f.Year != "" {
+		log.WithFields(log.Fields{"year": f.Year, "name": f.CleanName}).Debugln("Found series which requires year to be added")
+		f.CleanName = fmt.Sprintf("%s (%s)", f.CleanName, f.Year)
 	}
 
 	return f

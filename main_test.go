@@ -86,6 +86,59 @@ func TestCopy(t *testing.T) {
 		t.Error(err)
 	}
 }
+func TestLookup(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+	moreTests := make(map[string]parsedFile)
+	moreTests["The.Flash.2014.S06E07.720p.HDTV.x264-SVA.mkv"] = parsedFile{Filename: "The.Flash.2014.S06E07.720p.HDTV.x264-SVA", Extension: ".mkv", Filepath: "The.Flash.2014.S06E07.720p.HDTV.x264-SVA.mkv", Year: "2014", IsMovie: false, IsSeries: true, CleanName: "The Flash (2014)", Season: "06", Episode: "07", Resolution: "720p"}
+	moreTests["Charmed.S01E01.mkv"] = parsedFile{Filename: "Charmed.S01E01", Extension: ".mkv", Filepath: "Charmed.S01E01.mkv", Year: "1998", IsMovie: false, IsSeries: true, CleanName: "Charmed (1998)", Season: "01", Episode: "01", Resolution: ""}
+	moreTests["Charmed.2018.S01E01.mkv"] = parsedFile{Filename: "Charmed.2018.S01E01", Extension: ".mkv", Filepath: "Charmed.2018.S01E01.mkv", Year: "2018", IsMovie: false, IsSeries: true, CleanName: "Charmed (2018)", Season: "01", Episode: "01", Resolution: ""}
+	for name, mi := range moreTests {
+		newMi := newParsedFile(name, true)
+		if newMi.Extension != mi.Extension {
+			t.Errorf("Extension '%v' did not match expected extension '%v'\n", newMi.Extension, mi.Extension)
+		}
+
+		if newMi.Filename != mi.Filename {
+			t.Errorf("Filename '%v' did not match expected Filename '%v'\n", newMi.Filename, mi.Filename)
+		}
+
+		if newMi.Filepath != mi.Filepath {
+			t.Errorf("Filepath '%v' did not match expected Filepath '%v'\n", newMi.Filepath, mi.Filepath)
+		}
+
+		if newMi.CleanName != mi.CleanName {
+			t.Errorf("Auto-parsed CleanName '%v' did not match hardcoded CleanName '%v'\n", newMi.CleanName, mi.CleanName)
+		}
+
+		if newMi.Season != mi.Season {
+			t.Errorf("Season '%v' did not match expected Season '%v'\n", newMi.Season, mi.Season)
+		}
+
+		if newMi.Episode != mi.Episode {
+			t.Errorf("Episode '%v' did not match expected Episode '%v'\n", newMi.Episode, mi.Episode)
+		}
+
+		if newMi.FullName() != mi.FullName() {
+			t.Errorf("FullName '%v' did not match expected FullName '%v'\n", newMi.FullName(), mi.FullName())
+		}
+
+		if newMi.Year != mi.Year {
+			t.Errorf("Year '%v' did not match expected Year '%v'\n", newMi.Year, mi.Year)
+		}
+
+		if newMi.IsMovie != mi.IsMovie {
+			t.Errorf("Expected '%v' to be a movie, but it was not. Season: '%s', Episode: '%s'", newMi.Filename, newMi.Season, newMi.Episode)
+		}
+
+		if newMi.IsSeries != mi.IsSeries {
+			t.Errorf("Expected '%v' to be a series, but it was not.", newMi.Filename)
+		}
+
+		if newMi.TargetName() != mi.TargetName() {
+			t.Errorf("TargetName() '%v' did not match expected TargetName() '%v'\n", newMi.TargetName(), mi.TargetName())
+		}
+	}
+}
 
 func TestParseContent(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
@@ -98,6 +151,7 @@ func TestParseContent(t *testing.T) {
 	tests["[HorribleSubs] Kaiji S2 - Against All Rules - 01 [480p].mkv"] = parsedFile{Filename: "[HorribleSubs] Kaiji S2 - Against All Rules - 01 [480p]", Extension: ".mkv", Filepath: "[HorribleSubs] Kaiji S2 - Against All Rules - 01 [480p].mkv", Year: "", IsSeries: true, CleanName: "Kaiji S2 - Against All Rules", Season: "00", Episode: "01", Resolution: "480p"}
 	tests["[HorribleSubs] Fruits Basket (2019) - 01 [1080p].mkv"] = parsedFile{Filename: "[HorribleSubs] Fruits Basket (2019) - 01 [1080p]", Extension: ".mkv", Filepath: "[HorribleSubs] Fruits Basket (2019) - 01 [1080p].mkv", Year: "2019", IsSeries: true, CleanName: "Fruits Basket", Season: "00", Episode: "01", Resolution: "1080p"}
 	tests["Apollo.11.2019.1080p.mkv"] = parsedFile{Filename: "Apollo.11.2019.1080p", Extension: ".mkv", Filepath: "Apollo.11.2019.1080p.mkv", Year: "2019", IsMovie: true, IsSeries: false, CleanName: "Apollo 11", Season: "", Episode: "", Resolution: "1080p"}
+	tests["The.Flash.2014.S06E07.720p.HDTV.x264-SVA.mkv"] = parsedFile{Filename: "The.Flash.2014.S06E07.720p.HDTV.x264-SVA", Extension: ".mkv", Filepath: "The.Flash.2014.S06E07.720p.HDTV.x264-SVA.mkv", Year: "2014", IsMovie: false, IsSeries: true, CleanName: "The Flash (2014)", Season: "06", Episode: "07", Resolution: "720p"}
 
 	for name, mi := range tests {
 		newMi := newParsedFile(name, false)

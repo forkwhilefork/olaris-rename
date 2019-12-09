@@ -223,7 +223,10 @@ func (p parsedFile) Act(targetFolder, action string) error {
 		}
 
 		if action == "symlink" {
+			source, err = filepath.EvalSymlinks(source)
+			log.WithFields(log.Fields{"source": source, "target": targetLocation}).Debugln("Evaling symlinks")
 			source, err = filepath.Rel(filepath.Dir(targetLocation), source)
+
 			if err != nil {
 				return err
 			}

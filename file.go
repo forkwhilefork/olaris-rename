@@ -85,10 +85,11 @@ func queryTmdb(p *parsedFile) error {
 			log.Debugln("No results")
 		}
 	}
+
 	return nil
 }
 
-// TargetName is the name the file should be renamed to, right now this is the FullName but if we want to make this smarter we can.
+// TargetName is the name the file should be renamed to
 func (p *parsedFile) TargetName() string {
 	var newName string
 
@@ -189,6 +190,7 @@ func newParsedFile(filePath string, lookup bool) parsedFile {
 			}
 		}
 
+		cleanName = strings.Replace(cleanName, ":", "", -1)
 		f.CleanName = cleanName
 	} else if supportedMusicExtensions[f.Extension] {
 		f.IsMusic = true
@@ -205,6 +207,9 @@ func newParsedFile(filePath string, lookup bool) parsedFile {
 		log.WithFields(log.Fields{"year": f.Year, "name": f.CleanName}).Debugln("Found series which requires year to be added")
 		f.CleanName = fmt.Sprintf("%s (%s)", f.CleanName, f.Year)
 	}
+
+	// Windows really hates colons, so lets strip them out.
+	f.CleanName = strings.Replace(f.CleanName, ":", "", -1)
 
 	return f
 }

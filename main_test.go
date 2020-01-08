@@ -92,6 +92,7 @@ func TestLookup(t *testing.T) {
 	moreTests["The.Flash.2014.S06E07.720p.HDTV.x264-SVA.mkv"] = parsedFile{Filename: "The.Flash.2014.S06E07.720p.HDTV.x264-SVA", Extension: ".mkv", Filepath: "The.Flash.2014.S06E07.720p.HDTV.x264-SVA.mkv", Year: "2014", IsMovie: false, IsSeries: true, CleanName: "The Flash (2014)", Season: "06", Episode: "07", Resolution: "720p"}
 	moreTests["Charmed.S01E01.mkv"] = parsedFile{Filename: "Charmed.S01E01", Extension: ".mkv", Filepath: "Charmed.S01E01.mkv", Year: "1998", IsMovie: false, IsSeries: true, CleanName: "Charmed (1998)", Season: "01", Episode: "01", Resolution: ""}
 	moreTests["Charmed.2018.S01E01.mkv"] = parsedFile{Filename: "Charmed.2018.S01E01", Extension: ".mkv", Filepath: "Charmed.2018.S01E01.mkv", Year: "2018", IsMovie: false, IsSeries: true, CleanName: "Charmed (2018)", Season: "01", Episode: "01", Resolution: ""}
+	moreTests["Maleficent.Mistress.of.Evil.2019.720p.BluRay.x264-SPARKS.mkv"] = parsedFile{Filename: "Maleficent.Mistress.of.Evil.2019.720p.BluRay.x264-SPARKS", Extension: ".mkv", Filepath: "Maleficent.Mistress.of.Evil.2019.720p.BluRay.x264-SPARKS.mkv", Year: "2019", IsMovie: true, IsSeries: false, CleanName: "Maleficent Mistress of Evil", Season: "", Episode: "", Resolution: "720p"}
 	for name, mi := range moreTests {
 		newMi := newParsedFile(name, true)
 		if newMi.Extension != mi.Extension {

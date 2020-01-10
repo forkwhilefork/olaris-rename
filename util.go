@@ -11,7 +11,7 @@ import (
 )
 
 const tmdbAPIKey = "0cdacd9ab172ac6ff69c8d84b2c938a8"
-const defaultMovieFormat = "{n}/{n} ({y}) {r}"
+const defaultMovieFormat = "{n} ({y})/{n} ({y}) {r}"
 const defaultSeriesFormat = "{n}/Season.{s}/{n}.S{s}E{e}.{r}"
 
 var addYearToSeries = map[string]bool{

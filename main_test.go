@@ -53,7 +53,7 @@ func TestSymlink(t *testing.T) {
 		t.Error(err)
 	}
 
-	f := newParsedFile(filepath.Join("test-files", "Angel.S04E02.mkv"), false)
+	f := newParsedFile(filepath.Join("test-files", "Angel.S04E02.mkv"), false, false)
 	err = f.Act(tmpdir, "symlink")
 	if err != nil {
 		t.Error(err)
@@ -74,7 +74,7 @@ func TestCopy(t *testing.T) {
 		t.Error(err)
 	}
 
-	f := newParsedFile(filepath.Join("test-files", "Angel.S04E02.mkv"), false)
+	f := newParsedFile(filepath.Join("test-files", "Angel.S04E02.mkv"), false, false)
 	err = f.Act(tmpdir, "copy")
 	if err != nil {
 		t.Error(err)
@@ -94,7 +94,7 @@ func TestLookup(t *testing.T) {
 	moreTests["Charmed.2018.S01E01.mkv"] = parsedFile{Filename: "Charmed.2018.S01E01", Extension: ".mkv", Filepath: "Charmed.2018.S01E01.mkv", Year: "2018", IsMovie: false, IsSeries: true, CleanName: "Charmed (2018)", Season: "01", Episode: "01", Resolution: ""}
 	moreTests["Maleficent.Mistress.of.Evil.2019.720p.BluRay.x264-SPARKS.mkv"] = parsedFile{Filename: "Maleficent.Mistress.of.Evil.2019.720p.BluRay.x264-SPARKS", Extension: ".mkv", Filepath: "Maleficent.Mistress.of.Evil.2019.720p.BluRay.x264-SPARKS.mkv", Year: "2019", IsMovie: true, IsSeries: false, CleanName: "Maleficent Mistress of Evil", Season: "", Episode: "", Resolution: "720p"}
 	for name, mi := range moreTests {
-		newMi := newParsedFile(name, true)
+		newMi := newParsedFile(name, true, false)
 		if newMi.Extension != mi.Extension {
 			t.Errorf("Extension '%v' did not match expected extension '%v'\n", newMi.Extension, mi.Extension)
 		}
@@ -153,9 +153,11 @@ func TestParseContent(t *testing.T) {
 	tests["[HorribleSubs] Fruits Basket (2019) - 01 [1080p].mkv"] = parsedFile{Filename: "[HorribleSubs] Fruits Basket (2019) - 01 [1080p]", Extension: ".mkv", Filepath: "[HorribleSubs] Fruits Basket (2019) - 01 [1080p].mkv", Year: "2019", IsSeries: true, CleanName: "Fruits Basket", Season: "00", Episode: "01", Resolution: "1080p"}
 	tests["Apollo.11.2019.1080p.mkv"] = parsedFile{Filename: "Apollo.11.2019.1080p", Extension: ".mkv", Filepath: "Apollo.11.2019.1080p.mkv", Year: "2019", IsMovie: true, IsSeries: false, CleanName: "Apollo 11", Season: "", Episode: "", Resolution: "1080p"}
 	tests["The.Flash.2014.S06E07.720p.HDTV.x264-SVA.mkv"] = parsedFile{Filename: "The.Flash.2014.S06E07.720p.HDTV.x264-SVA", Extension: ".mkv", Filepath: "The.Flash.2014.S06E07.720p.HDTV.x264-SVA.mkv", Year: "2014", IsMovie: false, IsSeries: true, CleanName: "The Flash (2014)", Season: "06", Episode: "07", Resolution: "720p"}
+	tests["/home/test/The.Flash.2014.S06E07.720p.HDTV.x264-SVA/jioasdjioasd9012.mkv"] = parsedFile{Filename: "The.Flash.2014.S06E07.720p.HDTV.x264-SVA", Extension: ".mkv", Filepath: "The.Flash.2014.S06E07.720p.HDTV.x264-SVA.mkv", Year: "2014", IsMovie: false, IsSeries: true, CleanName: "The Flash (2014)", Season: "06", Episode: "07", Resolution: "720p"}
+	tests["/home/test/letsnotrecurse.mkv"] = parsedFile{Filename: "test", Extension: ".mkv", Filepath: "test.mkv", Year: "", IsMovie: false, IsSeries: false, CleanName: "Test", Season: "", Episode: "", Resolution: ""}
 
 	for name, mi := range tests {
-		newMi := newParsedFile(name, false)
+		newMi := newParsedFile(name, false, false)
 		if newMi.Extension != mi.Extension {
 			t.Errorf("Extension '%v' did not match expected extension '%v'\n", newMi.Extension, mi.Extension)
 		}

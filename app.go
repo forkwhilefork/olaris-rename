@@ -94,7 +94,7 @@ func (e *App) checkFile(filePath string) {
 		}
 	}
 
-	file := newParsedFile(filePath, e.tmdbLookup)
+	file := newParsedFile(filePath, e.tmdbLookup, false)
 
 	if file.IsMovie {
 		log.Debugln("File is a MovieFile")

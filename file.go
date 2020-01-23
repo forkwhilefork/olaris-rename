@@ -118,12 +118,13 @@ func (p *parsedFile) FullName() string {
 	return p.Filename + p.Extension
 }
 
-func newParsedFile(filePath string, lookup bool) parsedFile {
+func newParsedFile(filePath string, lookup bool, parent bool) parsedFile {
 	f := parsedFile{Filepath: filePath}
 	f.Extension = filepath.Ext(filePath)
 	filename := strings.TrimSuffix(filePath, f.Extension)
 	filename = filepath.Base(filename)
 	f.Filename = filename
+	log.WithFields(log.Fields{"file": f.Filename}).Debugln("Checking file")
 
 	if supportedVideoExtensions[f.Extension] {
 		for _, match := range order {
@@ -154,12 +155,17 @@ func newParsedFile(filePath string, lookup bool) parsedFile {
 		cleanName := strings.Replace(f.Filename, ".", " ", -1)
 
 		if !f.IsMusic {
+			log.WithFields(log.Fields{"cleanName": cleanName, "episode": f.Episode, "season": f.Season}).Debugln("Result")
 			if f.Episode == "" && f.Season == "" && f.Year != "" {
 				f.IsMovie = true
 			} else if f.Episode != "" && f.Season != "" {
 				f.IsSeries = true
 			} else if f.Episode == "" && f.Season == "" {
-				log.WithFields(log.Fields{"file": f.Filename}).Warnln("Nothing sensible found, don't know how to continue")
+				fileParent := filepath.Base(filepath.Dir(filePath))
+				if fileParent != "" && !parent {
+					log.WithFields(log.Fields{"file": f.Filename, "filePath": filePath, "fileParent": fileParent}).Warnln("Nothing sensible found, trying again with parent.")
+					return newParsedFile(fileParent+f.Extension, lookup, true)
+				}
 			}
 
 			for _, match := range order {

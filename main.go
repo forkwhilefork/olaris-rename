@@ -12,7 +12,7 @@ func main() {
 
 	if *logToFile {
 		lp := configFolderPath("olaris-rename.log")
-		f, err := os.Create(lp)
+		f, err := os.OpenFile(lp, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			panic(err)
 		}

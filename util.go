@@ -68,7 +68,7 @@ var ignoreMovie = map[string]bool{
 }
 
 var matchers = map[string]*regexp.Regexp{
-	"year":         regexp.MustCompile("([\\[\\(]?((?:19[0-9]|20[01])[0-9])[\\]\\)]?)"),
+	"year":         regexp.MustCompile("([\\[\\(]?((?:19[0-9]|20[012])[0-9])[\\]\\)]?)"),
 	"season":       regexp.MustCompile("(?i)(s?([0-9]{1,2}))[EX]"),
 	"episode":      regexp.MustCompile("(?i)[EX]([0-9]{2})(?:[^0-9]|$)"),
 	"resolution":   regexp.MustCompile("(?i)(([0-9]{3,4}p))"),

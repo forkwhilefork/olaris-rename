@@ -145,6 +145,7 @@ func TestParseContent(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	tests := make(map[string]parsedFile)
 	tests["The Matrix Revolutions (2003).mkv"] = parsedFile{Filename: "The Matrix Revolutions (2003)", Extension: ".mkv", Filepath: "The Matrix Revolutions (2003).mkv", Year: "2003", IsMovie: true, CleanName: "The Matrix Revolutions"}
+	tests["Sonic.the.Hedgehog.2020.1080p.HDRip.X264.AC3-EVO.mkv"] = parsedFile{Filename: "Sonic.the.Hedgehog.2020.1080p.HDRip.X264.AC3-EVO", Extension: ".mkv", Filepath: "Sonic.the.Hedgehog.2020.1080p.HDRip.X264.AC3-EVO.mkv", Year: "2020", IsMovie: true, Resolution: "1080p", CleanName: "Sonic The Hedgehog"}
 	tests["home/data/settings/content/The Matrix Revolutions - 2003.mkv"] = parsedFile{Filename: "The Matrix Revolutions - 2003", Extension: ".mkv", Filepath: "home/data/settings/content/The Matrix Revolutions - 2003.mkv", Year: "2003", IsMovie: true, CleanName: "The Matrix Revolutions"}
 	tests["Angel.S04E12.mkv"] = parsedFile{Filename: "Angel.S04E12", Extension: ".mkv", Filepath: "Angel.S04E12.mkv", Year: "", IsSeries: true, CleanName: "Angel", Season: "04", Episode: "12"}
 	tests["Downton Abbey 5x06 HDTV x264-FoV [eztv].mkv"] = parsedFile{Extension: ".mkv", IsSeries: true, Filename: "Downton Abbey 5x06 HDTV x264-FoV [eztv]", Season: "05", Episode: "06", CleanName: "Downton Abbey", Filepath: "Downton Abbey 5x06 HDTV x264-FoV [eztv].mkv"}

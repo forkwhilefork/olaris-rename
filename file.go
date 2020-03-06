@@ -155,14 +155,16 @@ func newParsedFile(filePath string, lookup bool, parent bool) parsedFile {
 		cleanName := strings.Replace(f.Filename, ".", " ", -1)
 
 		if !f.IsMusic {
-			log.WithFields(log.Fields{"cleanName": cleanName, "episode": f.Episode, "season": f.Season}).Debugln("Result")
+			log.WithFields(log.Fields{"cleanName": cleanName, "year": f.Year, "episode": f.Episode, "season": f.Season}).Debugln("Pre-parsing done, initial result.")
 			if f.Episode == "" && f.Season == "" && f.Year != "" {
 				f.IsMovie = true
+				log.Debugln("Identified file as a movie")
 			} else if f.Episode != "" && f.Season != "" {
 				f.IsSeries = true
+				log.Debugln("Identified file as an episode")
 			} else if f.Episode == "" && f.Season == "" {
 				fileParent := filepath.Base(filepath.Dir(filePath))
-				if fileParent != "" && !parent {
+				if fileParent != "" && !parent && fileParent != "." {
 					log.WithFields(log.Fields{"file": f.Filename, "filePath": filePath, "fileParent": fileParent}).Warnln("Nothing sensible found, trying again with parent.")
 					return newParsedFile(fileParent+f.Extension, lookup, true)
 				}

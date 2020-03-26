@@ -25,6 +25,7 @@ var actions = map[string]bool{
 	"symlink":  true,
 	"hardlink": true,
 	"copy":     true,
+	"move":     true,
 }
 
 var supportedCompressedExtensions = map[string]bool{

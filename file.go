@@ -229,12 +229,13 @@ func (p parsedFile) Act(targetFolder, action string) error {
 	}
 
 	targetLocation := filepath.Join(targetFolder, p.TargetName())
-	err = ensurePath(filepath.Dir(targetLocation))
-	if err != nil {
-		return err
-	}
 
 	if *dryrun == false {
+		err = ensurePath(filepath.Dir(targetLocation))
+		if err != nil {
+			return err
+		}
+
 		log.WithFields(log.Fields{"target": targetLocation, "source": source, "action": action}).Infoln("Acting on file")
 		if _, err := os.Lstat(targetLocation); err == nil {
 			log.Warnln("File already exists, doing nothing.")
@@ -263,6 +264,11 @@ func (p parsedFile) Act(targetFolder, action string) error {
 			}
 		} else if action == "copy" {
 			err := copyFileContents(source, targetLocation)
+			if err != nil {
+				return err
+			}
+		} else if action == "move" {
+			err := os.Rename(source, targetLocation)
 			if err != nil {
 				return err
 			}

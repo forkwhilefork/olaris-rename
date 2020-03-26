@@ -86,6 +86,26 @@ func TestCopy(t *testing.T) {
 		t.Error(err)
 	}
 }
+func TestMove(t *testing.T) {
+	tmpdir, err := ioutil.TempDir(os.TempDir(), "bis")
+	defer os.RemoveAll(tmpdir)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	f := newParsedFile(filepath.Join("test-files", "Angel.S04E02.mkv"), false, false)
+	err = f.Act(tmpdir, "move")
+	if err != nil {
+		t.Error(err)
+	}
+	target := filepath.Join(tmpdir, f.TargetName())
+	if _, err := os.Stat(target); err == nil {
+		t.Log("Exists")
+	} else if os.IsNotExist(err) {
+		t.Error(err)
+	}
+}
 func TestLookup(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	moreTests := make(map[string]parsedFile)

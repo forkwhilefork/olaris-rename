@@ -14,7 +14,7 @@ be much slower.
 
 ```
   -action string
-    	How to act on files, valid options are symlink, hardlink or copy. (default "symlink")
+    	How to act on files, valid options are symlink, hardlink, copy or move. (default "symlink")
   -dry-run
     	Don't actually modify any files.
   -extract-path string

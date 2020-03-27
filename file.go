@@ -28,6 +28,18 @@ type parsedFile struct {
 	IsMovie      bool
 	IsMusic      bool
 	ExternalID   int
+	OriginalFile string
+}
+
+// SourcePath returns the originfile if one is available otherwise does the most recursed hit.
+func (p *parsedFile) SourcePath() string {
+	log.Println(p.Filepath)
+	log.Println(p.OriginalFile)
+	if p.OriginalFile == "" {
+		return p.Filepath
+	} else {
+		return p.OriginalFile
+	}
 }
 
 func queryTmdb(p *parsedFile) error {
@@ -118,8 +130,8 @@ func (p *parsedFile) FullName() string {
 	return p.Filename + p.Extension
 }
 
-func newParsedFile(filePath string, lookup bool, parent bool) parsedFile {
-	f := parsedFile{Filepath: filePath}
+func newParsedFile(filePath string, lookup bool, originalFile string) parsedFile {
+	f := parsedFile{Filepath: filePath, OriginalFile: originalFile}
 	f.Extension = filepath.Ext(filePath)
 	filename := strings.TrimSuffix(filePath, f.Extension)
 	filename = filepath.Base(filename)
@@ -164,9 +176,9 @@ func newParsedFile(filePath string, lookup bool, parent bool) parsedFile {
 				log.Debugln("Identified file as an episode")
 			} else if f.Episode == "" && f.Season == "" {
 				fileParent := filepath.Base(filepath.Dir(filePath))
-				if fileParent != "" && !parent && fileParent != "." {
+				if fileParent != "" && originalFile == "" && fileParent != "." {
 					log.WithFields(log.Fields{"file": f.Filename, "filePath": filePath, "fileParent": fileParent}).Warnln("Nothing sensible found, trying again with parent.")
-					return newParsedFile(fileParent+f.Extension, lookup, true)
+					return newParsedFile(fileParent+f.Extension, lookup, filePath)
 				}
 			}
 
@@ -223,7 +235,7 @@ func newParsedFile(filePath string, lookup bool, parent bool) parsedFile {
 }
 
 func (p parsedFile) Act(targetFolder, action string) error {
-	source, err := filepath.Abs(p.Filepath)
+	source, err := filepath.Abs(p.SourcePath())
 	if err != nil {
 		return err
 	}
@@ -243,11 +255,14 @@ func (p parsedFile) Act(targetFolder, action string) error {
 		}
 
 		if action == "symlink" {
+			log.Warnln("FU", source)
 			source, err = filepath.EvalSymlinks(source)
+			log.Warnln("source:", source, "err", err)
 			log.WithFields(log.Fields{"source": source, "target": targetLocation}).Debugln("Evaling symlinks")
 			source, err = filepath.Rel(filepath.Dir(targetLocation), source)
 
 			if err != nil {
+				log.WithFields(log.Fields{"targetLocation": filepath.Dir(targetLocation), "source": source}).Debugln("error during Rel call")
 				return err
 			}
 

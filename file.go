@@ -255,14 +255,12 @@ func (p parsedFile) Act(targetFolder, action string) error {
 		}
 
 		if action == "symlink" {
-			log.Warnln("FU", source)
 			source, err = filepath.EvalSymlinks(source)
-			log.Warnln("source:", source, "err", err)
 			log.WithFields(log.Fields{"source": source, "target": targetLocation}).Debugln("Evaling symlinks")
 			source, err = filepath.Rel(filepath.Dir(targetLocation), source)
 
 			if err != nil {
-				log.WithFields(log.Fields{"targetLocation": filepath.Dir(targetLocation), "source": source}).Debugln("error during Rel call")
+				log.WithFields(log.Fields{"targetLocation": filepath.Dir(targetLocation), "source": source, "err": err}).Debugln("error during Rel call")
 				return err
 			}
 

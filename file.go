@@ -174,7 +174,7 @@ func newParsedFile(filePath string, lookup bool, originalFile string) parsedFile
 			} else if f.Episode != "" && f.Season != "" {
 				f.IsSeries = true
 				log.Debugln("Identified file as an episode")
-			} else if f.Episode == "" && f.Season == "" {
+			} else {
 				fileParent := filepath.Base(filepath.Dir(filePath))
 				if fileParent != "" && originalFile == "" && fileParent != "." {
 					log.WithFields(log.Fields{"file": f.Filename, "filePath": filePath, "fileParent": fileParent}).Warnln("Nothing sensible found, trying again with parent.")

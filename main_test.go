@@ -54,7 +54,7 @@ func TestRecursive(t *testing.T) {
 	err = createFile(tf)
 	t.Log(err)
 
-	f := NewParsedFile(tf, false, "")
+	f := NewParsedFile(tf)
 	err = f.Act(tmpdir, "symlink")
 	if err != nil {
 		t.Error(err)
@@ -76,7 +76,7 @@ func TestSymlink(t *testing.T) {
 		t.Error(err)
 	}
 
-	f := NewParsedFile(filepath.Join(tmpdir, "Angel.S04E02.mkv"), false, "")
+	f := NewParsedFile(filepath.Join(tmpdir, "Angel.S04E02.mkv"))
 	err = f.Act(tmpdir, "symlink")
 	if err != nil {
 		t.Error(err)
@@ -98,7 +98,7 @@ func TestCopy(t *testing.T) {
 		t.Error(err)
 	}
 
-	f := NewParsedFile(filepath.Join(tmpdir, name), false, "")
+	f := NewParsedFile(filepath.Join(tmpdir, name))
 	err = f.Act(tmpdir, "copy")
 	if err != nil {
 		t.Error(err)
@@ -141,7 +141,7 @@ func TestMove(t *testing.T) {
 		t.Error(err)
 	}
 
-	f := NewParsedFile(filepath.Join(tmpdir, name), false, "")
+	f := NewParsedFile(filepath.Join(tmpdir, name))
 	err = f.Act(tmpdir, "move")
 	if err != nil {
 		t.Error(err)
@@ -161,7 +161,7 @@ func TestLookup(t *testing.T) {
 	moreTests["Charmed.2018.S01E01.mkv"] = ParsedFile{Filename: "Charmed.2018.S01E01", Extension: ".mkv", Filepath: "Charmed.2018.S01E01.mkv", Year: "2018", IsMovie: false, IsSeries: true, CleanName: "Charmed (2018)", Season: "01", Episode: "01", Resolution: ""}
 	moreTests["Maleficent.Mistress.of.Evil.2019.720p.BluRay.x264-SPARKS.mkv"] = ParsedFile{Filename: "Maleficent.Mistress.of.Evil.2019.720p.BluRay.x264-SPARKS", Extension: ".mkv", Filepath: "Maleficent.Mistress.of.Evil.2019.720p.BluRay.x264-SPARKS.mkv", Year: "2019", IsMovie: true, IsSeries: false, CleanName: "Maleficent Mistress of Evil", Season: "", Episode: "", Resolution: "720p"}
 	for name, mi := range moreTests {
-		newMi := NewParsedFile(name, true, "")
+		newMi := NewParsedFile(name, Options{Lookup: true})
 		if newMi.Extension != mi.Extension {
 			t.Errorf("Extension '%v' did not match expected extension '%v'\n", newMi.Extension, mi.Extension)
 		}
@@ -207,6 +207,14 @@ func TestLookup(t *testing.T) {
 		}
 	}
 }
+func TestForceContentType(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+	f := NewParsedFile("This.Is.A.Series.S01E22.mkv", Options{ForceMovie: true})
+	if !f.IsMovie {
+		t.Errorf("Expected '%s' to be identified as a movie since we forced it even though it looked like an episode %v", f.CleanName, f.IsMovie)
+	}
+
+}
 
 func TestParseContent(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
@@ -226,7 +234,7 @@ func TestParseContent(t *testing.T) {
 	tests["/home/test/letsnotrecurse.mkv"] = ParsedFile{Filename: "test", Extension: ".mkv", Filepath: "test.mkv", Year: "", IsMovie: false, IsSeries: false, CleanName: "Test", Season: "", Episode: "", Resolution: ""}
 
 	for name, mi := range tests {
-		newMi := NewParsedFile(name, false, "")
+		newMi := NewParsedFile(name)
 		if newMi.Extension != mi.Extension {
 			t.Errorf("Extension '%v' did not match expected extension '%v'\n", newMi.Extension, mi.Extension)
 		}

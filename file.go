@@ -35,8 +35,26 @@ type ParsedFile struct {
 	OriginalFile string
 }
 
-func NewParsedFile(filePath string, lookup bool, originalFile string) ParsedFile {
-	f := ParsedFile{Filepath: filePath, OriginalFile: originalFile}
+type Options struct {
+	Lookup       bool
+	ForceMovie   bool
+	ForceSeries  bool
+	OriginalFile string
+}
+
+func getOpts(o []Options) (opts Options) {
+	if len(o) == 0 {
+		opts = Options{Lookup: false}
+	} else {
+		opts = o[0]
+	}
+	return opts
+}
+
+func NewParsedFile(filePath string, o ...Options) ParsedFile {
+	opts := getOpts(o)
+
+	f := ParsedFile{Filepath: filePath, OriginalFile: opts.OriginalFile}
 	f.Extension = filepath.Ext(filePath)
 	filename := strings.TrimSuffix(filePath, f.Extension)
 	filename = filepath.Base(filename)
@@ -73,17 +91,18 @@ func NewParsedFile(filePath string, lookup bool, originalFile string) ParsedFile
 
 		if !f.IsMusic {
 			log.WithFields(log.Fields{"cleanName": cleanName, "year": f.Year, "episode": f.Episode, "season": f.Season}).Debugln("Pre-parsing done, initial result.")
-			if f.Episode == "" && f.Season == "" && f.Year != "" {
+			if opts.ForceMovie || (f.Episode == "" && f.Season == "" && f.Year != "") {
 				f.IsMovie = true
 				log.Debugln("Identified file as a movie")
-			} else if f.Episode != "" && f.Season != "" {
+			} else if opts.ForceSeries || (f.Episode != "" && f.Season != "") {
 				f.IsSeries = true
 				log.Debugln("Identified file as an episode")
 			} else {
 				fileParent := filepath.Base(filepath.Dir(filePath))
-				if fileParent != "" && originalFile == "" && fileParent != "." {
+				if fileParent != "" && opts.OriginalFile == "" && fileParent != "." {
 					log.WithFields(log.Fields{"file": f.Filename, "filePath": filePath, "fileParent": fileParent}).Warnln("Nothing sensible found, trying again with parent.")
-					return NewParsedFile(fileParent+f.Extension, lookup, filePath)
+					opts.OriginalFile = filePath
+					return NewParsedFile(fileParent+f.Extension, opts)
 				}
 			}
 
@@ -124,7 +143,7 @@ func NewParsedFile(filePath string, lookup bool, originalFile string) ParsedFile
 		return f
 	}
 
-	if lookup {
+	if opts.Lookup {
 		queryTmdb(&f)
 	}
 

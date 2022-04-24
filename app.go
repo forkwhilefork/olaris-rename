@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/mholt/archiver/v3"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/mholt/archiver/v3"
+	log "github.com/sirupsen/logrus"
 )
 
 // NewApp creates a new environment
@@ -94,7 +95,7 @@ func (e *App) checkFile(filePath string) {
 		}
 	}
 
-	file := newParsedFile(filePath, e.tmdbLookup, "")
+	file := NewParsedFile(filePath, e.tmdbLookup, "")
 
 	if file.IsMovie {
 		log.Debugln("File is a MovieFile")

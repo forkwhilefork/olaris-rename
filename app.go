@@ -1,18 +1,22 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/mholt/archiver/v3"
 	log "github.com/sirupsen/logrus"
+	"gitlab.com/olaris/olaris-rename/identify"
 )
 
 // NewApp creates a new environment
-func NewApp(recursive bool, action string, movieFolder string, extractPath string, seriesFolder string, dryrun bool, tmdbLookup bool, skipExtracting bool, minFileSize string) *App {
-	return &App{recursive: recursive, action: action, movieFolder: movieFolder, extractPath: extractPath, seriesFolder: seriesFolder, dryrun: dryrun, tmdbLookup: tmdbLookup, skipExtracting: skipExtracting, minFileSize: minFileSize}
+func NewApp(recursive bool, action string, movieFolder string, extractPath string, seriesFolder string, dryrun bool, tmdbLookup bool, skipExtracting bool, minFileSize string, forceMovie bool, forceSeries bool) *App {
+	return &App{recursive: recursive, action: action, movieFolder: movieFolder, extractPath: extractPath, seriesFolder: seriesFolder, dryrun: dryrun, tmdbLookup: tmdbLookup, skipExtracting: skipExtracting, minFileSize: minFileSize, forceMovie: forceMovie, forceSeries: forceSeries}
 }
 
 // App is a Standard environment with options
@@ -26,6 +30,85 @@ type App struct {
 	recursive      bool
 	tmdbLookup     bool
 	skipExtracting bool
+	forceMovie     bool
+	forceSeries    bool
+}
+
+var actions = map[string]bool{
+	"symlink":  true,
+	"hardlink": true,
+	"copy":     true,
+	"move":     true,
+}
+
+func defaultMovieFolder() string {
+	return filepath.Join(getHome(), "media", "Movies")
+}
+
+func defaultSeriesFolder() string {
+	return filepath.Join(getHome(), "media", "TV Shows")
+}
+
+func defaultExtractedFolder() string {
+	return filepath.Join(getHome(), "media", "extracted")
+}
+
+func defaultMusicFolder() string {
+	return filepath.Join(getHome(), "media", "Music")
+}
+func defaultConfigFolder() string {
+	p := filepath.Join(getHome(), ".config", "olaris-renamer")
+	ensurePath(p)
+	return p
+}
+
+func configFolderPath(p string) string {
+	path := filepath.Join(defaultConfigFolder(), p)
+	return path
+}
+
+func getHome() string {
+	usr, err := user.Current()
+	if err != nil {
+		panic(fmt.Sprintf("Failed to determine user's home directory, error: '%s'\n", err.Error()))
+	}
+	return usr.HomeDir
+}
+
+// ensurePath ensures the given filesystem path exists, if not it will create it.
+func ensurePath(pathName string) error {
+	if _, err := os.Stat(pathName); os.IsNotExist(err) {
+		log.WithFields(log.Fields{"pathName": pathName}).Debugln("Creating folder as it does not exist yet.")
+		err = os.MkdirAll(pathName, 0755)
+		if err != nil {
+			log.WithFields(log.Fields{"pathName": pathName}).Debugln("Could not create path.")
+			return err
+		}
+	}
+	return nil
+}
+
+func copyFileContents(src, dst string) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return
+	}
+	err = out.Sync()
+	return
 }
 
 func (e *App) minFileSizeBytes() int64 {
@@ -66,19 +149,19 @@ func (e *App) checkFile(filePath string) {
 		return
 	}
 
-	if supportedVideoExtensions[ext] {
+	if identify.SupportedVideoExtensions[ext] {
 		if info.Size() < e.minFileSizeBytes() {
 			log.WithFields(log.Fields{"filePath": filePath, "minSize": e.minFileSizeBytes(), "size": info.Size()}).Warnln("file is smaller then the given limit, not processing.")
 			return
 		}
 	}
 
-	if supportedCompressedExtensions[ext] && !e.skipExtracting {
+	if identify.SupportedCompressedExtensions[ext] && !e.skipExtracting {
 		log.WithFields(log.Fields{"extension": ext, "file": filePath}).Println("Got a compressed file")
 
 		err := archiver.Walk(filePath, func(file archiver.File) error {
 			extension := filepath.Ext(file.Name())
-			if supportedVideoExtensions[extension] {
+			if identify.SupportedVideoExtensions[extension] {
 				log.WithFields(log.Fields{"extension": ext, "filename": file.Name()}).Println("Extracting file and running new scan on the result")
 				archiver.Unarchive(filePath, e.extractPath)
 				target := strings.Replace(file.Name(), ext, "", -1)
@@ -95,14 +178,14 @@ func (e *App) checkFile(filePath string) {
 		}
 	}
 
-	file := NewParsedFile(filePath, Options{Lookup: e.tmdbLookup})
+	file := identify.NewParsedFile(filePath, identify.Options{Lookup: e.tmdbLookup, MovieFormat: *movieFormat, SeriesFormat: *seriesFormat, ForceMovie: e.forceMovie, ForceSeries: e.forceSeries})
 
 	if file.IsMovie {
 		log.Debugln("File is a MovieFile")
-		err = file.Act(e.movieFolder, e.action)
+		err = act(file, e.movieFolder, e.action)
 	} else if file.IsSeries {
 		log.Debugln("File is a SeriesFile")
-		err = file.Act(e.seriesFolder, e.action)
+		err = act(file, e.seriesFolder, e.action)
 	} else if file.IsMusic {
 		log.Debugln("File is a MusicFile, music is not supported yet.")
 	}
@@ -112,8 +195,70 @@ func (e *App) checkFile(filePath string) {
 	}
 
 	log.WithFields(log.Fields{"filePath": filePath}).Debugln("Done checking file")
+}
 
-	return
+func act(p identify.ParsedFile, targetFolder, action string) error {
+	source, err := filepath.Abs(p.SourcePath())
+	if err != nil {
+		return err
+	}
+
+	targetLocation := filepath.Join(targetFolder, p.TargetName())
+
+	if !p.Options.DryRun {
+		err = ensurePath(filepath.Dir(targetLocation))
+		if err != nil {
+			return err
+		}
+
+		log.WithFields(log.Fields{"target": targetLocation, "source": source, "action": action}).Infoln("Acting on file")
+		if _, err := os.Lstat(targetLocation); err == nil {
+			log.Warnln("File already exists, doing nothing.")
+			return nil
+		}
+
+		if action == "symlink" {
+			source, err = filepath.EvalSymlinks(source)
+			if err != nil {
+				log.WithFields(log.Fields{"targetLocation": filepath.Dir(targetLocation), "source": source, "err": err}).Debugln("error during symlink evaluation")
+				return err
+			}
+
+			log.WithFields(log.Fields{"source": source, "target": targetLocation}).Debugln("Evaling symlinks")
+			source, err = filepath.Rel(filepath.Dir(targetLocation), source)
+
+			if err != nil {
+				log.WithFields(log.Fields{"targetLocation": filepath.Dir(targetLocation), "source": source, "err": err}).Debugln("error during Rel call")
+				return err
+			}
+
+			log.WithFields(log.Fields{"target": targetLocation, "source": source, "action": action}).Infoln("Using relative path for symlinks.")
+
+			err = os.Symlink(source, targetLocation)
+			if err != nil {
+				return err
+			}
+		} else if action == "hardlink" {
+			err = os.Link(source, targetLocation)
+			if err != nil {
+				return err
+			}
+		} else if action == "copy" {
+			err := copyFileContents(source, targetLocation)
+			if err != nil {
+				return err
+			}
+		} else if action == "move" {
+			err := os.Rename(source, targetLocation)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		log.WithFields(log.Fields{"target": targetLocation, "source": source, "action": action}).Infoln("--dry-run enabled, not acting on file")
+	}
+
+	return nil
 }
 
 // StartRun starts a identification run
@@ -125,7 +270,7 @@ func (e *App) StartRun(path string) {
 	}
 
 	if fi.IsDir() {
-		if e.recursive == false {
+		if !e.recursive {
 			log.Infof("Scanning non-recursive path '%s'", path)
 			files, err := filepath.Glob(filepath.Join(path, "*"))
 			if err != nil {

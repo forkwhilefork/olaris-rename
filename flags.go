@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+
+	"gitlab.com/olaris/olaris-rename/identify"
 )
 
 var recursive = flag.Bool("recursive", true, "Scan folders inside of other folders.")
@@ -17,5 +19,7 @@ var tmdbLookup = flag.Bool("tmdb-lookup", true, "Should the TMDB be used for bet
 var extractPath = flag.String("extract-path", defaultExtractedFolder(), "Path to extract content to.")
 var skipExtracting = flag.Bool("skip-extracting", false, "Disable automatic extraction.")
 var minFileSize = flag.String("min-file-size", "120", "Minimal file size in MB for olaris-rename to consider a file valid to be processed.")
-var seriesFormat = flag.String("series-format", defaultSeriesFormat, "Format used to rename series.")
-var movieFormat = flag.String("movie-format", defaultMovieFormat, "Format used to rename movies.")
+var seriesFormat = flag.String("series-format", identify.DefaultSeriesFormat, "Format used to rename series.")
+var movieFormat = flag.String("movie-format", identify.DefaultMovieFormat, "Format used to rename movies.")
+var forceMovie = flag.Bool("force-movie", false, "Forces the supplied path to be identified as a movie.")
+var forceSeries = flag.Bool("force-series", false, "Forces the supplied path to be identified as a series.")

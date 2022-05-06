@@ -2,6 +2,7 @@ package identify
 
 import (
 	"fmt"
+	"strconv"
 
 	"path/filepath"
 	"regexp"
@@ -304,4 +305,24 @@ func (p *ParsedFile) TargetName() string {
 // FullName is the original name of the file without the ful path
 func (p *ParsedFile) FullName() string {
 	return p.Filename + p.Extension
+}
+
+// EpisodeNum converts Episode to integer, mainly for Olaris-Server support
+func (p *ParsedFile) EpisodeNum() (episodeNum int) {
+	episodeNum, err := strconv.Atoi(p.Episode)
+	if err != nil {
+		log.Warnln("Received error when converting episode to int", err)
+	}
+
+	return episodeNum
+}
+
+// EpisodeNum converts Season to integer, mainly for Olaris-Server support
+func (p *ParsedFile) SeasonNum() (seasonNum int) {
+	seasonNum, err := strconv.Atoi(p.Season)
+	if err != nil {
+		log.Warnln("Received error when converting season to int", err)
+	}
+
+	return seasonNum
 }

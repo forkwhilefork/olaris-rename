@@ -1,4 +1,4 @@
-image: golang:1.13.4-stretch
+image: golang:1.18.1-stretch
 
 variables:
   REPO_NAME: gitlab.com/olaris/olaris-rename
@@ -30,7 +30,7 @@ format:
 build:
     stage: build
     script:
-      - go build -o olaris-rename flags.go main.go util.go app.go file.go
+      - go build
       - cp -r olaris-rename $CI_PROJECT_DIR/
 
     artifacts:

@@ -2,6 +2,8 @@ package identify
 
 import (
 	"regexp"
+
+	"github.com/ryanbradynd05/go-tmdb"
 )
 
 const tmdbAPIKey = "0cdacd9ab172ac6ff69c8d84b2c938a8"
@@ -13,6 +15,10 @@ var addYearToSeries = map[string]bool{
 	"Doctor Who":  true,
 	"Magnum P.I.": true,
 	"Charmed":     true,
+}
+
+var yearToSeasonLookup = map[string]bool{
+	"Mythbusters": true,
 }
 
 var SupportedCompressedExtensions = map[string]bool{
@@ -72,4 +78,16 @@ var matchers = map[string]*regexp.Regexp{
 	"extended":     regexp.MustCompile("(EXTENDED(:?.CUT)?)"),
 	"episodeAnime": regexp.MustCompile("[-_ p.](\\d{2})[-_ (v\\[](\\d{2})?"),
 	"groupAnime":   regexp.MustCompile("^(\\[\\w*\\])\\s(.*)\\s-"),
+}
+
+func initAgent() (agent *tmdb.TMDb) {
+	config := tmdb.Config{
+		APIKey:   tmdbAPIKey,
+		Proxies:  nil,
+		UseProxy: false,
+	}
+
+	agent = tmdb.Init(config)
+
+	return agent
 }

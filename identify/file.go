@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ryanbradynd05/go-tmdb"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
@@ -34,6 +33,8 @@ type ParsedFile struct {
 	ExternalID   int
 	OriginalFile string
 	Options      Options
+
+	hasYearAsSeason bool
 }
 
 func (p *ParsedFile) String() string {
@@ -91,6 +92,7 @@ func NewParsedFile(filePath string, o ...Options) ParsedFile {
 				case "yearAsSeason":
 					if len(res) > 1 {
 						log.WithField("year", res[2]).Debugln("Found year as season.")
+						f.hasYearAsSeason = true
 						f.Season = res[2]
 					}
 				case "year":
@@ -185,6 +187,29 @@ func NewParsedFile(filePath string, o ...Options) ParsedFile {
 		queryTmdb(&f)
 	}
 
+	if f.ExternalID > 0 && f.hasYearAsSeason {
+		// Translate season as year to season number
+		agent := initAgent()
+		details, err := agent.GetTvInfo(f.ExternalID, nil)
+		if err != nil {
+			log.Errorln("Could not locate TV even though we just found an external ID, this shouldn't be possible. Error:", err)
+		}
+		couldTranslate := false
+		for _, s := range details.Seasons {
+			if s.Name == fmt.Sprintf("Season %s", f.Season) {
+				log.Debugln("Found a match for the season name, using season number.")
+				f.Season = strconv.Itoa(s.SeasonNumber)
+				couldTranslate = true
+				break
+			}
+		}
+		if !couldTranslate {
+			log.Warnln("Could not translate season as year to normal season :-(")
+		}
+	} else if f.hasYearAsSeason && !f.Options.Lookup {
+		log.Warnln("Found an episode that has a year as season but lookup is disabled so not translating season as year to normal season.")
+	}
+
 	if addYearToSeries[f.CleanName] && f.Year != "" {
 		log.WithFields(log.Fields{"year": f.Year, "name": f.CleanName}).Debugln("Found seriesname that has multiple series with the same name but different years so adding the year into the final name.")
 		f.CleanName = fmt.Sprintf("%s (%s)", f.CleanName, f.Year)
@@ -208,15 +233,7 @@ func (p *ParsedFile) SourcePath() string {
 }
 
 func queryTmdb(p *ParsedFile) error {
-	var agent *tmdb.TMDb
-
-	config := tmdb.Config{
-		APIKey:   tmdbAPIKey,
-		Proxies:  nil,
-		UseProxy: false,
-	}
-
-	agent = tmdb.Init(config)
+	agent := initAgent()
 
 	var options = make(map[string]string)
 

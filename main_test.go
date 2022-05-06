@@ -227,6 +227,21 @@ func TestForceContentType(t *testing.T) {
 
 }
 
+func TestYearSeasons(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+	tests := make(map[string]identify.ParsedFile)
+	opts := identify.GetDefaultOptions()
+	opts.Lookup = true
+	tests["MythBusters.S2005E03.Brown.Note.mkv"] = identify.ParsedFile{Options: opts, Filename: "Mythbusters.S2005E03.Brown.Note", Extension: ".mkv", Filepath: "Mythbusters.S2005E03.Brown.Note.mkv", Year: "", IsSeries: true, CleanName: "MythBusters", Season: "3", Episode: "03"}
+
+	for name, mi := range tests {
+		newMi := identify.NewParsedFile(name, opts)
+		if newMi.TargetName() != mi.TargetName() {
+			t.Errorf("Freshly parsed targetName '%v' did not match expected stub targetName '%v'\n", newMi.TargetName(), mi.TargetName())
+		}
+	}
+}
+
 func TestParseContent(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	tests := make(map[string]identify.ParsedFile)
@@ -237,6 +252,7 @@ func TestParseContent(t *testing.T) {
 	tests["Angel.S04E12.mkv"] = identify.ParsedFile{Options: identify.GetDefaultOptions(), Filename: "Angel.S04E12", Extension: ".mkv", Filepath: "Angel.S04E12.mkv", Year: "", IsSeries: true, CleanName: "Angel", Season: "04", Episode: "12"}
 	// Mythbusters uses a weird format where the seasonname is the year it was aired.
 	tests["Mythbusters.S2005E03.Brown.Note.mkv"] = identify.ParsedFile{Options: identify.GetDefaultOptions(), Filename: "Mythbusters.S2005E03.Brown.Note", Extension: ".mkv", Filepath: "Mythbusters.S2005E03.Brown.Note.mkv", Year: "", IsSeries: true, CleanName: "Mythbusters", Season: "2005", Episode: "03"}
+
 	tests["Downton Abbey 5x06 HDTV x264-FoV [eztv].mkv"] = identify.ParsedFile{Options: identify.GetDefaultOptions(), Extension: ".mkv", IsSeries: true, Filename: "Downton Abbey 5x06 HDTV x264-FoV [eztv]", Season: "05", Episode: "06", CleanName: "Downton Abbey", Filepath: "Downton Abbey 5x06 HDTV x264-FoV [eztv].mkv"}
 	tests["Weekend.At.Bernie's.1989.1080p.BluRay.FLAC2.0.x264-DON.mkv"] = identify.ParsedFile{Options: identify.GetDefaultOptions(), Filename: "Weekend.At.Bernie's.1989.1080p.BluRay.FLAC2.0.x264-DON", Extension: ".mkv", Filepath: "Weekend.At.Bernie's.1989.1080p.BluRay.FLAC2.0.x264-DON.mkv", Resolution: "1080p", Year: "1989", IsSeries: false, IsMovie: true, CleanName: "Weekend At Bernie's"}
 	tests["[HorribleSubs] Kaiji S2 - Against All Rules - 01 [480p].mkv"] = identify.ParsedFile{Options: identify.GetDefaultOptions(), Filename: "[HorribleSubs] Kaiji S2 - Against All Rules - 01 [480p]", Extension: ".mkv", Filepath: "[HorribleSubs] Kaiji S2 - Against All Rules - 01 [480p].mkv", Year: "", IsSeries: true, CleanName: "Kaiji S2 - Against All Rules", Season: "00", Episode: "01", Resolution: "480p"}

@@ -51,6 +51,7 @@ var SupportedVideoExtensions = map[string]bool{
 	".wmv":  true,
 	".mpg":  true,
 	".mpeg": true,
+  ".m2ts": true,
 }
 
 var order = []string{"yearAsSeason", "year", "season", "episode", "episodeAnime", "groupAnime", "audio", "resolution", "quality", "codec", "group", "proper", "repack", "hardcoded", "extended", "internal"}

@@ -142,7 +142,6 @@ func NewParsedFile(filePath string, o ...Options) ParsedFile {
 					return NewParsedFile(fileParent+f.Extension, opts)
 				}
 			}
-			log.Debugln("Starting actual matching.")
 
 			for _, match := range order {
 				res := matchers[match].FindStringSubmatch(cleanName)
@@ -156,7 +155,12 @@ func NewParsedFile(filePath string, o ...Options) ParsedFile {
 						} else if match == "groupAnime" {
 							cleanName = strings.Replace(cleanName, res[1], " ", -1)
 						} else {
+							oldName := cleanName
 							cleanName = matchers[match].ReplaceAllString(cleanName, " ")
+							if len(strings.TrimRight(cleanName, " ")) < 2 {
+								log.WithFields(log.Fields{"matcher": match, "newName": cleanName, "oldName": oldName}).Debugln("The match we just did made the name of the content smaller than two characters, we are going to assume something went wrong and reverting to the previous name.")
+								cleanName = oldName
+							}
 						}
 					}
 				}
@@ -168,7 +172,7 @@ func NewParsedFile(filePath string, o ...Options) ParsedFile {
 			if f.AnimeGroup == "" {
 				log.WithField("cleanName", cleanName).Debugln("Probably not Anime so cleaning a bit more.")
 				cleanName = regexp.MustCompile(`\s{2,}.*`).ReplaceAllString(cleanName, "")
-				cleanName = strings.Trim(cleanName, " -")
+				//cleanName = strings.Trim(cleanName, " -")
 				cleanName = cases.Title(language.English).String(cleanName)
 			}
 		}
@@ -218,7 +222,7 @@ func NewParsedFile(filePath string, o ...Options) ParsedFile {
 	// Windows really hates colons, so lets strip them out.
 	f.CleanName = strings.Replace(f.CleanName, ":", "", -1)
 
-	log.WithField("cleanName", f.String()).Debugln("Final result.")
+	log.WithField("cleanName", f.String()).Infoln("Done parsing filename.")
 
 	return f
 }

@@ -8,7 +8,7 @@ import (
 
 const tmdbAPIKey = "0cdacd9ab172ac6ff69c8d84b2c938a8"
 const DefaultMovieFormat = "{n} ({y})/{n} ({y}) {r}"
-const DefaultSeriesFormat = "{n}/Season.{s}/{n}.S{s}E{e}.{r}"
+const DefaultSeriesFormat = "{n}/Season {s}/{n} - S{s}E{e} - {t}"
 
 var addYearToSeries = map[string]bool{
 	"The Flash":   true,

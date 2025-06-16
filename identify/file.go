@@ -18,6 +18,7 @@ type ParsedFile struct {
 	Year         string
 	Season       string
 	Episode      string
+	EpisodeName  string
 	ExternalName string
 	CleanName    string
 	Filepath     string
@@ -37,7 +38,7 @@ type ParsedFile struct {
 }
 
 func (p *ParsedFile) String() string {
-	return fmt.Sprintf("Year: %s, Season: %s, Episode: %s, Name: %s, Movie: %v, Series: %v", p.Year, p.Season, p.Episode, p.CleanName, p.IsMovie, p.IsSeries)
+	return fmt.Sprintf("Year: %s, Season: %s, Episode: %s, EpisodeName: %s, Name: %s, Movie: %v, Series: %v", p.Year, p.Season, p.Episode, p.EpisodeName, p.CleanName, p.IsMovie, p.IsSeries)
 }
 
 type Options struct {
@@ -259,6 +260,24 @@ func queryTmdb(p *ParsedFile) error {
 			if tv.FirstAirDate != "" && p.Year == "" {
 				p.Year = strings.Split(tv.FirstAirDate, "-")[0]
 			}
+			
+			// Fetch episode name if we have season and episode information
+			if p.Season != "" && p.Episode != "" {
+				seasonNum, err1 := strconv.Atoi(p.Season)
+				episodeNum, err2 := strconv.Atoi(p.Episode)
+				if err1 == nil && err2 == nil {
+					episodeInfo, err := agent.GetTvEpisodeInfo(tv.ID, seasonNum, episodeNum, nil)
+					if err == nil && episodeInfo.Name != "" {
+						// Clean episode name for filesystem compatibility
+						p.EpisodeName = strings.Replace(episodeInfo.Name, ":", "", -1)
+						p.EpisodeName = strings.Replace(p.EpisodeName, "/", "-", -1)
+						p.EpisodeName = strings.Replace(p.EpisodeName, "\\", "-", -1)
+						log.WithFields(log.Fields{"episodeName": p.EpisodeName, "season": seasonNum, "episode": episodeNum}).Debugln("Found episode name from TMDB")
+					} else {
+						log.WithFields(log.Fields{"season": seasonNum, "episode": episodeNum, "error": err}).Debugln("Could not fetch episode name from TMDB")
+					}
+				}
+			}
 		} else {
 			log.Debugln("No results found on TMDB")
 		}
@@ -299,6 +318,7 @@ func (p *ParsedFile) TargetName() string {
 		newName = p.Options.SeriesFormat
 		newName = strings.Replace(newName, "{s}", p.Season, -1)
 		newName = strings.Replace(newName, "{e}", p.Episode, -1)
+		newName = strings.Replace(newName, "{t}", p.EpisodeName, -1)
 	} else {
 		newName = p.Filename
 	}

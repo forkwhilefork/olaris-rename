@@ -212,7 +212,7 @@ func TestYearSeasons(t *testing.T) {
 	tests := make(map[string]identify.ParsedFile)
 	opts := identify.GetDefaultOptions()
 	opts.Lookup = false
-	tests["MythBusters.S2005E03.Brown.Note.mkv"] = identify.ParsedFile{Options: opts, Filename: "Mythbusters.S2005E03.Brown.Note", Extension: ".mkv", Filepath: "Mythbusters.S2005E03.Brown.Note.mkv", Year: "", IsSeries: true, CleanName: "Mythbusters", Season: "2005", Episode: "03"}
+	tests["MythBusters.S2005E03.Brown.Note.mkv"] = identify.ParsedFile{Options: opts, Filename: "Mythbusters.S2005E03.Brown.Note", Extension: ".mkv", Filepath: "Mythbusters.S2005E03.Brown.Note.mkv", Year: "", IsSeries: true, CleanName: "Mythbusters", Season: "2005", Episode: "03", EpisodeName: ""}
 
 	for name, mi := range tests {
 		newMi := identify.NewParsedFile(name, opts)

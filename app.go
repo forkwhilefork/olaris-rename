@@ -31,6 +31,7 @@ type App struct {
 }
 
 var actions = map[string]bool{
+	"rename":   true,
 	"symlink":  true,
 	"hardlink": true,
 	"copy":     true,
@@ -145,14 +146,22 @@ func (e *App) checkFile(filePath string) {
 		}
 	}
 
-	file := identify.NewParsedFile(filePath, identify.Options{Lookup: e.tmdbLookup, MovieFormat: *movieFormat, SeriesFormat: *seriesFormat, ForceMovie: e.forceMovie, ForceSeries: e.forceSeries})
+	file := identify.NewParsedFile(filePath, identify.Options{Lookup: e.tmdbLookup, MovieFormat: *movieFormat, SeriesFormat: *seriesFormat, ForceMovie: e.forceMovie, ForceSeries: e.forceSeries, DryRun: e.dryrun})
 
 	if file.IsMovie {
 		log.Debugln("File is a MovieFile")
-		err = act(file, e.movieFolder, e.action)
+		if e.action == "rename" {
+			err = actRename(file, e.action)
+		} else {
+			err = act(file, e.movieFolder, e.action)
+		}
 	} else if file.IsSeries {
 		log.Debugln("File is a SeriesFile")
-		err = act(file, e.seriesFolder, e.action)
+		if e.action == "rename" {
+			err = actRename(file, e.action)
+		} else {
+			err = act(file, e.seriesFolder, e.action)
+		}
 	}
 
 	if err != nil {
@@ -160,6 +169,37 @@ func (e *App) checkFile(filePath string) {
 	}
 
 	log.WithFields(log.Fields{"filePath": filePath}).Debugln("Done checking file")
+}
+
+func actRename(p identify.ParsedFile, action string) error {
+	source, err := filepath.Abs(p.SourcePath())
+	if err != nil {
+		return err
+	}
+
+	// For rename action, we rename in the same directory as the source
+	// Extract just the filename part from TargetName (strip any folder structure)
+	sourceDir := filepath.Dir(source)
+	targetFullName := p.TargetName()
+	targetFileName := filepath.Base(targetFullName) // Get just the filename without folder structure
+	targetLocation := filepath.Join(sourceDir, targetFileName)
+
+	if !p.Options.DryRun {
+		log.WithFields(log.Fields{"target": targetLocation, "source": source, "action": action}).Infoln("Acting on file")
+		if _, err := os.Lstat(targetLocation); err == nil {
+			log.Warnln("File already exists, doing nothing.")
+			return nil
+		}
+
+		err := os.Rename(source, targetLocation)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.WithFields(log.Fields{"target": targetLocation, "source": source, "action": action}).Infoln("--dry-run enabled, not acting on file")
+	}
+
+	return nil
 }
 
 func act(p identify.ParsedFile, targetFolder, action string) error {

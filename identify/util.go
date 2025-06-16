@@ -21,27 +21,6 @@ var yearToSeasonLookup = map[string]bool{
 	"Mythbusters": true,
 }
 
-var SupportedCompressedExtensions = map[string]bool{
-	".rar": true,
-	".zip": true,
-	".tar": true,
-	".bz2": true,
-	".gz":  true,
-}
-
-var SupportedMusicExtensions = map[string]bool{
-	".mp3":  true,
-	".flac": true,
-	".3pg":  true,
-	".aac":  true,
-	".alac": true,
-	".opus": true,
-	".ogg":  true,
-	".wav":  true,
-	".wmv":  true,
-	".ape":  true,
-}
-
 var SupportedVideoExtensions = map[string]bool{
 	".mp4":  true,
 	".mkv":  true,

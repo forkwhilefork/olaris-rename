@@ -29,7 +29,6 @@ type ParsedFile struct {
 	AnimeGroup   string
 	IsSeries     bool
 	IsMovie      bool
-	IsMusic      bool
 	ExternalID   int
 	OriginalFile string
 	Options      Options
@@ -126,7 +125,7 @@ func NewParsedFile(filePath string, o ...Options) ParsedFile {
 
 		cleanName := strings.Replace(f.Filename, ".", " ", -1)
 
-		if !f.IsMusic {
+		if !f.IsMovie {
 			log.WithFields(log.Fields{"cleanName": cleanName, "year": f.Year, "episode": f.Episode, "season": f.Season}).Debugln("Pre-parsing done, initial result.")
 			if opts.ForceMovie || (f.Episode == "" && f.Season == "" && f.Year != "") {
 				f.IsMovie = true
@@ -180,9 +179,6 @@ func NewParsedFile(filePath string, o ...Options) ParsedFile {
 		cleanName = strings.Replace(cleanName, ":", "", -1)
 
 		f.CleanName = cleanName
-	} else if SupportedMusicExtensions[f.Extension] {
-		f.IsMusic = true
-		return f
 	} else {
 		return f
 	}

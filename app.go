@@ -7,31 +7,27 @@ import (
 	"os/user"
 	"path/filepath"
 	"strconv"
-	"strings"
 
-	"github.com/mholt/archiver/v3"
 	log "github.com/sirupsen/logrus"
 	"gitlab.com/olaris/olaris-rename/identify"
 )
 
 // NewApp creates a new environment
-func NewApp(recursive bool, action string, movieFolder string, extractPath string, seriesFolder string, dryrun bool, tmdbLookup bool, skipExtracting bool, minFileSize string, forceMovie bool, forceSeries bool) *App {
-	return &App{recursive: recursive, action: action, movieFolder: movieFolder, extractPath: extractPath, seriesFolder: seriesFolder, dryrun: dryrun, tmdbLookup: tmdbLookup, skipExtracting: skipExtracting, minFileSize: minFileSize, forceMovie: forceMovie, forceSeries: forceSeries}
+func NewApp(recursive bool, action string, movieFolder string, seriesFolder string, dryrun bool, tmdbLookup bool, minFileSize string, forceMovie bool, forceSeries bool) *App {
+	return &App{recursive: recursive, action: action, movieFolder: movieFolder, seriesFolder: seriesFolder, dryrun: dryrun, tmdbLookup: tmdbLookup, minFileSize: minFileSize, forceMovie: forceMovie, forceSeries: forceSeries}
 }
 
 // App is a Standard environment with options
 type App struct {
-	action         string
-	movieFolder    string
-	extractPath    string
-	seriesFolder   string
-	minFileSize    string
-	dryrun         bool
-	recursive      bool
-	tmdbLookup     bool
-	skipExtracting bool
-	forceMovie     bool
-	forceSeries    bool
+	action       string
+	movieFolder  string
+	seriesFolder string
+	minFileSize  string
+	dryrun       bool
+	recursive    bool
+	tmdbLookup   bool
+	forceMovie   bool
+	forceSeries  bool
 }
 
 var actions = map[string]bool{
@@ -49,13 +45,6 @@ func defaultSeriesFolder() string {
 	return filepath.Join(getHome(), "media", "TV Shows")
 }
 
-func defaultExtractedFolder() string {
-	return filepath.Join(getHome(), "media", "extracted")
-}
-
-func defaultMusicFolder() string {
-	return filepath.Join(getHome(), "media", "Music")
-}
 func defaultConfigFolder() string {
 	p := filepath.Join(getHome(), ".config", "olaris-renamer")
 	ensurePath(p)
@@ -156,28 +145,6 @@ func (e *App) checkFile(filePath string) {
 		}
 	}
 
-	if identify.SupportedCompressedExtensions[ext] && !e.skipExtracting {
-		log.WithFields(log.Fields{"extension": ext, "file": filePath}).Println("Got a compressed file")
-
-		err := archiver.Walk(filePath, func(file archiver.File) error {
-			extension := filepath.Ext(file.Name())
-			if identify.SupportedVideoExtensions[extension] {
-				log.WithFields(log.Fields{"extension": ext, "filename": file.Name()}).Println("Extracting file and running new scan on the result")
-				archiver.Unarchive(filePath, e.extractPath)
-				target := strings.Replace(file.Name(), ext, "", -1)
-				rec := e.recursive
-				e.recursive = true
-				e.StartRun(filepath.Join(e.extractPath, target))
-				e.recursive = rec
-			}
-			return nil
-		})
-
-		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Warnln("Received an error while looking through compressed data.")
-		}
-	}
-
 	file := identify.NewParsedFile(filePath, identify.Options{Lookup: e.tmdbLookup, MovieFormat: *movieFormat, SeriesFormat: *seriesFormat, ForceMovie: e.forceMovie, ForceSeries: e.forceSeries})
 
 	if file.IsMovie {
@@ -186,8 +153,6 @@ func (e *App) checkFile(filePath string) {
 	} else if file.IsSeries {
 		log.Debugln("File is a SeriesFile")
 		err = act(file, e.seriesFolder, e.action)
-	} else if file.IsMusic {
-		log.Debugln("File is a MusicFile, music is not supported yet.")
 	}
 
 	if err != nil {

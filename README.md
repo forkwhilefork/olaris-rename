@@ -17,8 +17,6 @@ be much slower.
     	How to act on files, valid options are symlink, hardlink, copy or move. (default "symlink")
   -dry-run
     	Don't actually modify any files.
-  -extract-path string
-    	Path to extract content to. (default "$HOME/media-olaris/extracted")
   -filepath string
     	Path to scan (can be a folder or file)
   -log-to-file
@@ -29,8 +27,6 @@ be much slower.
       Format used to rename movies. (default "{n}/{n} ({y}) {r}")
   -min-file-size string
       Minimal file size in MB for olaris-rename to consider a file valid to be processed. (default "120")
-  -music-folder string
-    	Folder where music should be placed (default "$HOME/media-olaris/Music")
   -recursive
     	Scan folders inside of other folders.
   -series-folder string

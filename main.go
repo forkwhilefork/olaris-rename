@@ -44,6 +44,6 @@ func main() {
 		log.Warnln("--dry-run is enabled, not touching files")
 	}
 
-	e := NewApp(*recursive, *action, *movieFolder, *extractPath, *seriesFolder, *dryrun, *tmdbLookup, *skipExtracting, *minFileSize, *forceMovie, *forceSeries)
+	e := NewApp(*recursive, *action, *movieFolder, *seriesFolder, *dryrun, *tmdbLookup, *minFileSize, *forceMovie, *forceSeries)
 	e.StartRun(*filePath)
 }

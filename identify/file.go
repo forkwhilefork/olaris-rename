@@ -26,6 +26,7 @@ type ParsedFile struct {
 	Extension    string
 	Quality      string
 	Resolution   string
+	TechnicalInfo string
 	Group        string
 	AnimeGroup   string
 	IsSeries     bool
@@ -38,7 +39,7 @@ type ParsedFile struct {
 }
 
 func (p *ParsedFile) String() string {
-	return fmt.Sprintf("Year: %s, Season: %s, Episode: %s, EpisodeName: %s, Name: %s, Movie: %v, Series: %v", p.Year, p.Season, p.Episode, p.EpisodeName, p.CleanName, p.IsMovie, p.IsSeries)
+	return fmt.Sprintf("Year: %s, Season: %s, Episode: %s, EpisodeName: %s, TechnicalInfo: %s, Name: %s, Movie: %v, Series: %v", p.Year, p.Season, p.Episode, p.EpisodeName, p.TechnicalInfo, p.CleanName, p.IsMovie, p.IsSeries)
 }
 
 type Options struct {
@@ -123,6 +124,9 @@ func NewParsedFile(filePath string, o ...Options) ParsedFile {
 				}
 			}
 		}
+
+		// Extract technical info before cleaning process removes it
+		f.extractTechnicalInfo()
 
 		cleanName := strings.Replace(f.Filename, ".", " ", -1)
 
@@ -328,6 +332,7 @@ func (p *ParsedFile) TargetName() string {
 	newName = strings.Replace(newName, "{r}", p.Resolution, -1)
 	newName = strings.Replace(newName, "{q}", p.Quality, -1)
 	newName = strings.Replace(newName, "{y}", p.Year, -1)
+	newName = strings.Replace(newName, "{i}", p.TechnicalInfo, -1)
 	newName = strings.Trim(newName, " ")
 
 	// Sometimes we end up with an extra dot somehow. This should remove the extra dot
@@ -362,4 +367,45 @@ func (p *ParsedFile) SeasonNum() (seasonNum int) {
 	}
 
 	return seasonNum
+}
+
+// extractTechnicalInfo extracts technical information (resolution, quality, codec, etc.) from filename
+func (p *ParsedFile) extractTechnicalInfo() {
+	filename := p.Filename
+	
+	// List of technical patterns to look for, in order of likelihood
+	technicalPatterns := []string{"resolution", "quality", "codec", "audio"}
+	
+	earliestMatch := len(filename)
+	matchStart := -1
+	
+	// Find the earliest occurrence of any technical pattern
+	for _, pattern := range technicalPatterns {
+		if matcher, exists := matchers[pattern]; exists {
+			match := matcher.FindStringIndex(filename)
+			if match != nil && match[0] < earliestMatch {
+				earliestMatch = match[0]
+				matchStart = match[0]
+			}
+		}
+	}
+	
+	// If we found technical info, extract everything from that point onward
+	if matchStart != -1 {
+		// Find the start of the technical info by looking backwards for a separator
+		techStart := matchStart
+		for i := matchStart - 1; i >= 0; i-- {
+			if filename[i] == '.' || filename[i] == '-' || filename[i] == ' ' {
+				techStart = i + 1
+				break
+			}
+		}
+		
+		if techStart < len(filename) {
+			technicalInfo := filename[techStart:]
+			// Preserve the technical info exactly as it appears - no modifications
+			p.TechnicalInfo = technicalInfo
+			log.WithFields(log.Fields{"technicalInfo": p.TechnicalInfo}).Debugln("Extracted technical info")
+		}
+	}
 }

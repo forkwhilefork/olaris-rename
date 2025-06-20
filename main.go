@@ -40,10 +40,26 @@ func main() {
 		return
 	}
 
-	if *dryrun {
-		log.Warnln("--dry-run is enabled, not touching files")
+	var modes = map[string]bool{
+		"dry-run":     true,
+		"interactive": true,
+		"force":       true,
 	}
 
-	e := NewApp(*recursive, *action, *movieFolder, *seriesFolder, *dryrun, *tmdbLookup, *minFileSize, *forceMovie, *forceSeries)
+	if !modes[*mode] {
+		log.Errorf("Unknown --mode '%s', valid options are: dry-run, interactive, force", *mode)
+		flag.PrintDefaults()
+		return
+	}
+
+	if *mode == "dry-run" {
+		log.Warnln("Mode is set to dry-run, not touching files")
+	} else if *mode == "interactive" {
+		log.Infoln("Mode is set to interactive, will prompt for confirmation")
+	} else if *mode == "force" {
+		log.Warnln("Mode is set to force, will execute without confirmation")
+	}
+
+	e := NewApp(*recursive, *action, *movieFolder, *seriesFolder, *mode, *tmdbLookup, *minFileSize, *forceMovie, *forceSeries)
 	e.StartRun(*filePath)
 }

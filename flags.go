@@ -9,7 +9,7 @@ import (
 var recursive = flag.Bool("recursive", true, "Scan folders inside of other folders.")
 var logToFile = flag.Bool("log-to-file", false, "Logs are written to stdout as well as a logfile.")
 var verbose = flag.Bool("verbose", false, "Show debug log information.")
-var dryrun = flag.Bool("dry-run", true, "Don't actually modify any files.")
+var mode = flag.String("mode", "interactive", "Operating mode: dry-run (show what would be done), interactive (ask for confirmation), or force (execute without confirmation).")
 var action = flag.String("action", "rename", "How to act on files, valid options are rename, symlink, hardlink, copy or move.")
 var filePath = flag.String("filepath", ".", "Path to scan (can be a folder or file).")
 var movieFolder = flag.String("movie-folder", defaultMovieFolder(), "Folder where movies should be placed.")

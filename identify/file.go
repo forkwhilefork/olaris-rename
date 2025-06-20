@@ -49,11 +49,11 @@ type Options struct {
 	OriginalFile string
 	MovieFormat  string
 	SeriesFormat string
-	DryRun       bool
+	Mode         string
 }
 
 func (p *Options) String() string {
-	return fmt.Sprintf("Lookup: %v, ForceMovie: %v, ForceSeries: %v, OriginalFile: %s, MovieFormat: %s, SeriesFormat: %s, DryRun: %v", p.Lookup, p.ForceMovie, p.ForceSeries, p.OriginalFile, p.MovieFormat, p.SeriesFormat, p.DryRun)
+	return fmt.Sprintf("Lookup: %v, ForceMovie: %v, ForceSeries: %v, OriginalFile: %s, MovieFormat: %s, SeriesFormat: %s, Mode: %s", p.Lookup, p.ForceMovie, p.ForceSeries, p.OriginalFile, p.MovieFormat, p.SeriesFormat, p.Mode)
 }
 
 func GetDefaultOptions() Options {
@@ -223,7 +223,7 @@ func NewParsedFile(filePath string, o ...Options) ParsedFile {
 	// Windows really hates colons, so lets strip them out.
 	f.CleanName = strings.Replace(f.CleanName, ":", "", -1)
 
-	log.WithField("cleanName", f.String()).Infoln("Done parsing filename.")
+	log.WithField("cleanName", f.String()).Debugln("Done parsing filename.")
 
 	return f
 }
